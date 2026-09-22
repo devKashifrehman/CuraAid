@@ -1,0 +1,1006 @@
+/* ========================================
+   PRESCRIPTION - RESET & BASE
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   PRESCRIPTION - LAYOUT
+   ======================================== */
+.prescription-layout {
+  display: flex;
+  top: 0px;
+  position: relative;
+}
+
+.prescription-wrapper {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+/* ========================================
+   PRESCRIPTION - COMMON STYLES
+   ======================================== */
+
+/* ===== PAGE HEADER ===== */
+.prescription-header-section {
+  margin-bottom: 24px;
+}
+
+.prescription-title {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.prescription-subtitle {
+  font-size: 14px;
+  margin: 0;
+  text-align: right;
+}
+
+/* ===== SEARCH BOX ===== */
+.prescription-toolbar-section {
+  margin-bottom: 20px;
+}
+
+.prescription-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+#prescription-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+#prescription-search .prescription-search-icon {
+  position: absolute;
+  left: 16px;
+  font-size: 16px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#prescription-search input {
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+/* ===== TABS ===== */
+.prescription-tabs-section {
+  margin-bottom: 24px;
+}
+
+.prescription-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.prescription-tab-pill {
+  padding: 10px 20px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  font-family: inherit;
+}
+
+/* ===== PRESCRIPTION CARDS ===== */
+.prescription-cards-section {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.prescription-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.prescription-card {
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.prescription-card.old-prescription {
+  opacity: 0.85;
+}
+
+.prescription-card.old-prescription .prescription-card-avatar {
+  filter: grayscale(30%);
+}
+
+/* Card Header */
+.prescription-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  min-width: 0;
+  width: 100%;
+}
+
+.prescription-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.prescription-card-doctor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.prescription-card-doctor-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prescription-card-doctor-specialty {
+  margin: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prescription-card-date {
+  margin: 0;
+  font-size: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Card Body */
+.prescription-card-body {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.prescription-card-body-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.prescription-card-label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.prescription-card-value {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  word-break: break-word;
+}
+
+.prescription-card-med-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Card Actions */
+.prescription-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.prescription-view-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  text-align: center;
+  min-width: 0;
+  font-family: inherit;
+}
+
+.prescription-download-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  flex-shrink: 0;
+}
+
+/* Card Footer */
+.prescription-card-footer {
+  padding-top: 12px;
+  width: 100%;
+}
+
+.prescription-validity-text {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.prescription-validity-text.expired {
+  color: #e74c3c !important;
+}
+
+.prescription-progress-bar {
+  height: 5px;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.prescription-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.prescription-progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: prescriptionProgressShimmer 2s infinite;
+}
+
+@keyframes prescriptionProgressShimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ===== NO DATA ===== */
+.prescription-no-data {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.prescription-no-data-icon {
+  font-size: 48px;
+}
+
+.prescription-no-data p {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* ===== INFO PANEL - FIXED TO SHOW ON RIGHT ===== */
+.prescription-content {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.prescription-info-panel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 24px;
+}
+
+.prescription-info-box {
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.prescription-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.prescription-info-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prescription-info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.prescription-info-calendar {
+  font-size: 32px;
+  opacity: 0.25;
+}
+
+.prescription-info-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.prescription-info-text {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.prescription-info-text:last-of-type {
+  margin-bottom: 0;
+}
+
+.prescription-contact-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  font-family: inherit;
+}
+
+/* ========================================
+   PRESCRIPTION - MODAL
+   ======================================== */
+.prescription-modal-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.prescription-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.prescription-modal-content {
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: prescriptionModalSlideIn 0.3s ease;
+}
+
+@keyframes prescriptionModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.prescription-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.prescription-modal-content::-webkit-scrollbar-track {
+  border-radius: 3px;
+}
+
+.prescription-modal-content::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+}
+
+/* Modal Header */
+.prescription-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.prescription-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.prescription-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+/* Modal Body */
+.prescription-modal-body {
+  padding: 24px;
+}
+
+/* Doctor Info */
+.prescription-modal-doctor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.prescription-modal-doctor-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.prescription-modal-doctor-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prescription-modal-doctor-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.prescription-modal-doctor-specialty {
+  margin: 0;
+  font-size: 13px;
+}
+
+.prescription-modal-doctor-pmdc {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* Patient Info */
+.prescription-modal-patient {
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.prescription-modal-patient-text {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.prescription-modal-patient-text:last-child {
+  margin-bottom: 0;
+}
+
+.prescription-modal-patient-text strong {
+  font-weight: 600;
+}
+
+/* Info Grid */
+.prescription-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.prescription-modal-grid-item {
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.prescription-modal-grid-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prescription-modal-grid-value {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Prescription Content */
+.prescription-modal-rx {
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.prescription-modal-rx-symbol {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: serif;
+  margin-bottom: 16px;
+}
+
+.prescription-modal-rx-section {
+  margin-bottom: 20px;
+}
+
+.prescription-modal-rx-section:last-child {
+  margin-bottom: 0;
+}
+
+.prescription-modal-rx-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prescription-modal-rx-text {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Medicine List */
+.prescription-modal-rx-medicines {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.prescription-modal-rx-med {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.prescription-modal-rx-med:last-child {
+  border-bottom: none;
+}
+
+.prescription-modal-rx-bullet {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.prescription-modal-rx-med-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.prescription-modal-rx-med-dosage {
+  font-size: 14px;
+}
+
+/* Modal Footer */
+.prescription-modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 16px 24px 24px 24px;
+}
+
+.prescription-modal-download {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.prescription-modal-download-icon {
+  font-size: 16px;
+}
+
+/* ========================================
+   PRESCRIPTION - ANIMATIONS
+   ======================================== */
+@keyframes prescriptionFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prescription-card {
+  animation: prescriptionFadeIn 0.4s ease forwards;
+}
+
+.prescription-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.prescription-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.prescription-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.prescription-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.prescription-card:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+/* ========================================
+   PRESCRIPTION - RESPONSIVE
+   ======================================== */
+
+/* Tablet - 1024px */
+@media (max-width: 1024px) {
+  .prescription-content {
+    flex-direction: column;
+  }
+
+  .prescription-info-panel {
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
+
+  .prescription-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+  }
+}
+
+/* Mobile - 768px */
+@media (max-width: 768px) {
+  .prescription-wrapper {
+    padding: 16px;
+  }
+
+  .prescription-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .prescription-card {
+    padding: 18px;
+  }
+
+  .prescription-card-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .prescription-card-doctor-name {
+    font-size: 15px;
+  }
+
+  .prescription-card-doctor-specialty {
+    font-size: 12px;
+  }
+
+  .prescription-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prescription-tabs {
+    gap: 8px;
+  }
+
+  .prescription-tab-pill {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+
+/* Small Mobile - 600px */
+@media (max-width: 600px) {
+  .prescription-cards-section {
+    padding: 0;
+  }
+
+  .prescription-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .prescription-card {
+    padding: 16px;
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  .prescription-card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .prescription-card-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .prescription-card-doctor-name {
+    font-size: 14px;
+  }
+
+  .prescription-card-doctor-specialty {
+    font-size: 12px;
+  }
+
+  .prescription-card-date {
+    font-size: 11px;
+    width: 100%;
+    margin-top: 2px;
+    white-space: normal;
+  }
+
+  .prescription-card-body {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .prescription-card-body-item {
+    flex: none;
+    width: 100%;
+  }
+
+  .prescription-card-value {
+    font-size: 13px;
+  }
+
+  .prescription-card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .prescription-view-btn {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .prescription-download-btn {
+    width: 100%;
+    height: 40px;
+    border-radius: 8px;
+  }
+
+  .prescription-validity-text {
+    font-size: 12px;
+  }
+
+  .prescription-modal-content {
+    margin: 10px;
+  }
+
+  .prescription-modal-body {
+    padding: 16px;
+  }
+
+  .prescription-title {
+    font-size: 22px;
+  }
+
+  .prescription-info-panel {
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
+}
+
+/* Extra Small Mobile - 480px */
+@media (max-width: 480px) {
+  .prescription-cards-grid {
+    gap: 12px;
+  }
+
+  .prescription-card {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .prescription-card-header {
+    gap: 8px;
+  }
+
+  .prescription-card-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .prescription-card-doctor-name {
+    font-size: 13px;
+  }
+
+  .prescription-card-doctor-specialty {
+    font-size: 11px;
+  }
+
+  .prescription-card-date {
+    font-size: 10px;
+  }
+
+  .prescription-card-label {
+    font-size: 10px;
+  }
+
+  .prescription-card-value {
+    font-size: 12px;
+  }
+
+  .prescription-card-body {
+    gap: 8px;
+  }
+
+  .prescription-view-btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .prescription-download-btn {
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .prescription-card-footer {
+    padding-top: 10px;
+  }
+
+  .prescription-validity-text {
+    font-size: 11px;
+  }
+
+  .prescription-progress-bar {
+    height: 4px;
+  }
+
+  .prescription-info-panel {
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
+}
+
+/* Very Small Mobile - 380px */
+@media (max-width: 380px) {
+  .prescription-cards-grid {
+    gap: 10px;
+  }
+
+  .prescription-card {
+    padding: 12px;
+  }
+
+  .prescription-card-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .prescription-card-doctor-name {
+    font-size: 12px;
+  }
+
+  .prescription-card-doctor-specialty {
+    font-size: 10px;
+  }
+
+  .prescription-card-date {
+    font-size: 9px;
+  }
+
+  .prescription-card-value {
+    font-size: 11px;
+  }
+
+  .prescription-view-btn {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .prescription-download-btn {
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .prescription-info-panel {
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
+}
+
+/* ===== SPINNER ===== */
+.prescription-spin {
+  animation: prescription-spin-keyframes 1s linear infinite;
+}
+
+@keyframes prescription-spin-keyframes {
+  to { transform: rotate(360deg); }
+}

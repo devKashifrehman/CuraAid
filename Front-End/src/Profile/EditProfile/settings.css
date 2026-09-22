@@ -1,0 +1,1326 @@
+/* ========================================
+   SETTINGS - RESET & BASE
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   SETTINGS - LAYOUT
+   ======================================== */
+.settings-layout {
+  display: flex;
+  top: 0px;
+  position: relative;
+}
+
+.settings-wrapper {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  font-family: "Poppins", Arial, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ========================================
+   SETTINGS - COMMON STYLES
+   ======================================== */
+
+/* ===== PAGE HEADER ===== */
+.settings-page-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.settings-page-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  text-align: right;
+}
+
+.settings-page-subtitle {
+  font-size: 14px;
+  margin: 4px 0 0 0;
+  text-align: right;
+}
+
+/* ========================================
+   SETTINGS - HERO
+   ======================================== */
+.settings-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 30px 34px;
+  margin: 0 48px 26px;
+  display: flex;
+  align-items: center;
+  transition: all 0.35s ease;
+}
+
+.settings-hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: settingsHeroFloat 6s ease-in-out infinite;
+}
+
+.settings-hero-glow-one {
+  width: 230px;
+  height: 230px;
+  top: -90px;
+  right: -40px;
+}
+
+.settings-hero-glow-two {
+  width: 190px;
+  height: 190px;
+  bottom: -80px;
+  left: 35%;
+  animation-delay: 3s;
+}
+
+@keyframes settingsHeroFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-14px) scale(1.08);
+  }
+}
+
+.settings-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.settings-hero-avatar {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.settings-hero-avatar:hover {
+  transform: scale(1.06) rotate(2deg);
+}
+
+.settings-hero-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings-hero-avatar-badge {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+}
+
+.settings-hero-text {
+  min-width: 0;
+}
+
+.settings-hero-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 12px rgba(15, 23, 42, 0.2);
+}
+
+.settings-hero-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== SETTINGS CONTENT ===== */
+
+
+.settings-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-cli-vi {
+  position: sticky;
+  margin-top: 20px;
+  height: fit-content;
+}
+
+/* ===== SETTINGS CARD ===== */
+.settings-card {
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+  transform: translateY(-2px);
+}
+
+.settings-glass {
+  backdrop-filter: blur(10px);
+}
+
+/* ===== CARD HEADER ===== */
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.settings-card-header h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ===== SECTION HEADER ===== */
+.settings-section-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-section-icon {
+  font-size: 18px;
+}
+
+.settings-section-header-text {
+  flex: 1;
+}
+
+.settings-section-header-text h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.settings-section-header-text p {
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ===== SAVE CHANGES BUTTON ===== */
+.settings-save-changes-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+/* ===== PROFILE FORM ===== */
+.settings-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Avatar Section */
+.settings-avatar-section {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid;
+}
+
+.settings-avatar-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.settings-avatar-wrapper:hover {
+  transform: scale(1.05);
+}
+
+.settings-profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.settings-avatar-wrapper:hover .settings-avatar-overlay {
+  opacity: 1;
+}
+
+.settings-avatar-overlay.editable {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.settings-avatar-overlay.locked {
+  background: rgba(220, 38, 38, 0.6);
+}
+
+.settings-camera-icon {
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.settings-lock-icon {
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.settings-file-input-hidden {
+  display: none;
+}
+
+/* ============================================================
+   DOCTOR FIELDS - TWO COLUMNS
+   ============================================================ */
+.settings-doctor-fields {
+  width: 100%;
+}
+
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.settings-form-grid.settings-three-col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.settings-form-grid.settings-two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+.settings-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.settings-form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-form-input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: "Poppins", Arial, sans-serif;
+  outline: none;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.settings-form-input::placeholder {
+  font-size: 13px;
+}
+
+.settings-form-display {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+}
+
+/* ===== FORM SELECT ===== */
+.settings-form-select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: "Poppins", Arial, sans-serif;
+  outline: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+/* ===== PASSWORD FORM ===== */
+.settings-password-form {
+  margin-top: 4px;
+}
+
+.settings-password-group {
+  position: relative;
+}
+
+.settings-password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.settings-password-input-wrapper .settings-form-input {
+  padding-right: 44px;
+}
+
+.settings-eye-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-password-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.settings-update-password-btn {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+.settings-update-password-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none !important;
+}
+
+/* ===== TOGGLE SWITCH ===== */
+.settings-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.settings-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.settings-toggle-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  transition: 0.3s ease;
+}
+
+.settings-toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.settings-toggle-switch input:checked + .settings-toggle-slider::before {
+  transform: translateX(22px);
+}
+
+/* ===== LOCATION SECTION ===== */
+.settings-location-section {
+  margin-top: 4px;
+}
+
+.settings-location-input-wrapper {
+  position: relative;
+}
+
+.settings-location-input-wrapper .settings-form-input.settings-full {
+  width: 100%;
+}
+
+.settings-geocoding-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.settings-spinner {
+  animation: settingsSpin 1s linear infinite;
+}
+
+@keyframes settingsSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== MAP ===== */
+.settings-map-container {
+  margin-top: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.settings-map-iframe {
+  border: 0;
+  border-radius: 12px;
+  min-height: 200px;
+}
+
+.settings-map-placeholder {
+  margin-top: 12px;
+  padding: 40px 20px;
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 180px;
+  justify-content: center;
+}
+
+.settings-map-icon {
+  font-size: 36px;
+}
+
+.settings-map-placeholder p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ===== LOCATION ACTIONS ===== */
+.settings-location-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.settings-save-location-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+.settings-save-location-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none !important;
+}
+
+.settings-saved-location-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings-saved-icon {
+  font-size: 16px;
+}
+
+/* ========================================
+   SETTINGS - CLINIC CARD
+   ======================================== */
+.settings-clinic-card {
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.settings-clinic-card:hover {
+  transform: translateY(-2px);
+}
+
+.settings-clinic-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0 16px 0;
+}
+
+.settings-clinic-logo-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.settings-clinic-logo-wrapper:hover {
+  transform: scale(1.05);
+}
+
+.settings-clinic-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings-clinic-details {
+  margin-top: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-clinic-details h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.3px;
+}
+
+.settings-clinic-details p {
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.settings-clinic-type {
+  font-weight: 500;
+}
+
+.settings-clinic-location {
+  opacity: 0.7;
+}
+
+.settings-edit-clinic-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: "Poppins", Arial, sans-serif;
+  border: none;
+  margin-top: 4px;
+}
+
+.settings-btn-icon {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.settings-edit-clinic-btn:hover .settings-btn-icon {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   SETTINGS - COMPLETION ANIMATION
+   ======================================== */
+
+/* Overlay */
+.settings-completion-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: settingsFadeIn 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+@keyframes settingsFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Content */
+.settings-completion-content {
+  padding: 48px 56px;
+  border-radius: 20px;
+  text-align: center;
+  animation: settingsScaleIn 0.4s ease;
+  max-width: 420px;
+  transition: all 0.3s ease;
+}
+
+@keyframes settingsScaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Circle */
+.settings-completion-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  animation: settingsPulseCircle 1s ease-in-out;
+  transition: all 0.3s ease;
+}
+
+@keyframes settingsPulseCircle {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Icon */
+.settings-completion-icon {
+  font-size: 40px;
+  transition: all 0.3s ease;
+}
+
+/* Title */
+.settings-completion-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  transition: all 0.3s ease;
+}
+
+/* Subtitle */
+.settings-completion-subtitle {
+  font-size: 14px;
+  margin: 0;
+  transition: all 0.3s ease;
+}
+
+/* ========================================
+   SETTINGS - READONLY FIELDS
+   ======================================== */
+
+/* Read-only fields - shows 🚫 sign (not-allowed) */
+.settings-readonly-field {
+  cursor: not-allowed !important;
+  opacity: 0.8;
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  user-select: none;
+  width: 100%;
+}
+
+/* Ensure readonly fields don't get focus styles */
+.settings-readonly-field:focus {
+  outline: none;
+  box-shadow: none !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* ========================================
+   SETTINGS - RESPONSIVE
+   ======================================== */
+
+/* Tablet - 1100px */
+@media (max-width: 1100px) {
+  .settings-content {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-cli-vi {
+    position: static;
+  }
+}
+
+/* Tablet - 900px */
+@media (max-width: 900px) {
+  .settings-hero {
+    margin-inline: 28px;
+  }
+
+  .settings-wrapper {
+    padding: 16px 20px;
+  }
+
+  .settings-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .settings-form-grid.settings-three-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .settings-form-grid.settings-two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .settings-page-title {
+    font-size: 24px;
+  }
+
+  .settings-clinic-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .settings-clinic-logo-wrapper {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+/* Mobile - 768px */
+@media (max-width: 768px) {
+  .settings-wrapper {
+    padding: 16px;
+  }
+
+  .settings-card {
+    padding: 18px;
+  }
+
+  .settings-clinic-card {
+    padding: 18px;
+  }
+
+  .settings-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-avatar-wrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .settings-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Small Mobile - 600px */
+@media (max-width: 600px) {
+  .settings-wrapper {
+    padding: 12px 14px;
+  }
+
+  .settings-card {
+    padding: 16px;
+  }
+
+  .settings-clinic-card {
+    padding: 16px;
+  }
+
+  .settings-page-title {
+    font-size: 20px;
+  }
+
+  .settings-page-subtitle {
+    font-size: 13px;
+  }
+
+  .settings-completion-content {
+    padding: 32px 24px;
+    margin: 16px;
+  }
+
+  .settings-completion-circle {
+    width: 60px;
+    height: 60px;
+  }
+
+  .settings-completion-icon {
+    font-size: 30px;
+  }
+
+  .settings-completion-title {
+    font-size: 18px;
+  }
+
+  .settings-toggle-switch {
+    width: 40px;
+    height: 22px;
+  }
+
+  .settings-toggle-slider::before {
+    height: 14px;
+    width: 14px;
+    left: 4px;
+    bottom: 4px;
+  }
+
+  .settings-toggle-switch input:checked + .settings-toggle-slider::before {
+    transform: translateX(18px);
+  }
+
+  .settings-update-password-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .settings-save-changes-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .settings-clinic-logo-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+
+  .settings-edit-clinic-btn {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  .settings-save-location-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .settings-location-actions {
+    flex-direction: column;
+  }
+
+  .settings-saved-location-indicator {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .settings-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Extra Small Mobile - 400px */
+@media (max-width: 400px) {
+  .settings-wrapper {
+    padding: 8px 10px;
+  }
+
+  .settings-card {
+    padding: 12px;
+  }
+
+  .settings-clinic-card {
+    padding: 12px;
+  }
+
+  .settings-form-input {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .settings-form-display {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .settings-form-select {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .settings-clinic-logo-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .settings-clinic-details h4 {
+    font-size: 14px;
+  }
+
+  .settings-clinic-details p {
+    font-size: 12px;
+  }
+
+  .settings-completion-content {
+    padding: 24px 16px;
+  }
+
+  .settings-completion-circle {
+    width: 50px;
+    height: 50px;
+  }
+
+  .settings-completion-icon {
+    font-size: 24px;
+  }
+
+  .settings-completion-title {
+    font-size: 16px;
+  }
+
+  .settings-completion-subtitle {
+    font-size: 12px;
+  }
+
+  .settings-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ========================================
+   SETTINGS - ADMIN LIST
+   ======================================== */
+.settings-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-admin-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.settings-admin-row:hover {
+  transform: translateX(6px);
+}
+
+.settings-admin-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid rgba(56, 189, 248, 0.5);
+}
+
+.settings-admin-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings-admin-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-admin-info h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.settings-admin-info p {
+  font-size: 13px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-admin-role {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.settings-admin-remove {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.settings-admin-remove:hover {
+  transform: translateY(-2px) scale(1.1);
+}
+
+/* ========================================
+   SETTINGS - ADD ADMIN MODAL
+   ======================================== */
+.settings-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: settingsFadeIn 0.25s ease;
+}
+
+.settings-modal {
+  width: 100%;
+  max-width: 460px;
+  border-radius: 20px;
+  overflow: hidden;
+  animation: settingsScaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.settings-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.settings-modal-close {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.25s ease;
+}
+
+.settings-modal-close:hover {
+  transform: rotate(90deg) scale(1.1);
+}
+
+.settings-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 24px;
+}
+
+.settings-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+}
+
+.settings-modal-cancel {
+  padding: 10px 22px;
+  border-radius: 11px;
+  border: 1.5px solid rgba(148, 163, 184, 0.4);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Poppins", Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.settings-modal-cancel:hover {
+  transform: translateY(-2px);
+}
+
+.settings-modal-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #ffffff;
+  font-family: "Poppins", Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.settings-modal-confirm:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* ========================================
+   SETTINGS - RESPONSIVE (ADDITIONS)
+   ======================================== */
+@media (max-width: 768px) {
+  .settings-admin-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .settings-admin-role {
+    order: 3;
+  }
+
+  .settings-admin-remove {
+    margin-left: auto;
+    order: 4;
+  }
+}
+
+@media (max-width: 600px) {
+  .settings-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .settings-modal-cancel,
+  .settings-modal-confirm {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ========================================
+   SETTINGS - HERO RESPONSIVE
+   ======================================== */
+@media (max-width: 600px) {
+  .settings-hero {
+    padding: 22px 20px;
+    margin-inline: 0;
+  }
+
+  .settings-hero-content {
+    flex-direction: column;
+    text-align: center;
+    width: 100%;
+  }
+
+  .settings-hero-avatar {
+    width: 76px;
+    height: 76px;
+  }
+
+  .settings-hero-title {
+    font-size: 22px;
+  }
+
+  .settings-hero-subtitle {
+    font-size: 13px;
+  }
+}

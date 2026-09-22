@@ -1,0 +1,340 @@
+
+* {
+  box-sizing: border-box;
+}
+
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: background 0.3s ease;
+}
+
+#modal-overlay.role-selection-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+
+
+
+/* -------------------------------------------------
+   INNER CONTAINER
+   ------------------------------------------------- */
+.role-selection-container {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  padding: 2rem;
+  text-align: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* -------------------------------------------------
+   BACK BUTTON (Top Left)
+   ------------------------------------------------- */
+.back-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Back button colors per theme */
+
+
+
+
+.back-btn:hover {
+  transform: translateX(-3px);
+  opacity: 0.8;
+}
+
+/* -------------------------------------------------
+   HEADING: "Select Your Role"
+   ------------------------------------------------- */
+.role-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2.5rem;
+  letter-spacing: 0.5px;
+}
+
+/* Heading colors per theme */
+
+
+
+/* -------------------------------------------------
+   CARDS WRAPPER: Flex row for side-by-side layout
+   ------------------------------------------------- */
+.role-cards-wrapper {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+/* -------------------------------------------------
+   ROLE CARD (Renamed from feature-card)
+   ------------------------------------------------- */
+.role-card {
+  position: relative;
+  flex: 1 1 280px;
+  max-width: 320px;
+  padding: 2.5rem 1.5rem 2rem;
+  border-radius: 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.4s ease;
+  border: 2px solid transparent;
+  user-select: none;
+}
+
+
+
+
+/* -------------------------------------------------
+   CHECKBOX: Circular indicator at top-left (radius 50%)
+   ------------------------------------------------- */
+.role-checkbox {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%; /* 50% radius as requested */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border: 2px solid;
+}
+
+
+/* Checkmark icon inside the circle */
+.checkmark {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+/* -------------------------------------------------
+   CARD CONTENT
+   ------------------------------------------------- */
+.role-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  filter: grayscale(0.2);
+  transition: transform 0.3s ease;
+}
+
+.role-card:hover .role-icon {
+  transform: scale(1.1);
+}
+
+.role-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+/* Title colors per theme (matching your original palette) */
+
+
+
+.role-desc {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* -------------------------------------------------
+   CARD HOVER & ACTIVE GLOW EFFECTS
+   ------------------------------------------------- */
+/* Light theme hover: Green glow */
+
+
+
+
+/* -------------------------------------------------
+   ACTION BUTTON (Bottom, outside cards)
+   Only visible when a role is selected
+   ------------------------------------------------- */
+#action {
+  padding: 0.9rem 3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  animation: slideUp 0.3s ease-out;
+  justify-self: center;
+}
+#action:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+#action:active {
+  transform: translateY(0);
+}
+
+/* -------------------------------------------------
+   ANIMATIONS
+   ------------------------------------------------- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------------------------------------
+   RESPONSIVE: Stack cards on small screens
+   ------------------------------------------------- */
+@media (max-width: 640px) {
+  #modal-overlay.role-selection-overlay {
+    min-height: 100dvh;
+    height: auto;
+    padding: 1rem;
+    align-items: flex-start;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .role-selection-container {
+    width: 100%;
+    max-width: 420px;
+    min-height: calc(100dvh - 2rem);
+    padding: 3rem 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .back-btn {
+    top: 0.25rem;
+    left: 0;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .role-cards-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 1.35rem;
+  }
+
+  .role-heading {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+
+  .role-card {
+    flex: none;
+    max-width: 100%;
+    width: 100%;
+    min-height: auto;
+    padding: 1.4rem 1rem 1.2rem;
+    border-radius: 14px;
+  }
+
+  .role-checkbox {
+    top: 12px;
+    left: 12px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .role-icon {
+    margin-bottom: 0.75rem;
+  }
+
+  .role-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .role-title {
+    font-size: 1.05rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .role-desc {
+    font-size: 0.86rem;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  #action {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 380px) {
+  #modal-overlay.role-selection-overlay {
+    padding: 0.75rem;
+  }
+
+  .role-selection-container {
+    min-height: calc(100dvh - 1.5rem);
+    padding-top: 2.75rem;
+  }
+
+  .role-heading {
+    font-size: 1.35rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .role-card {
+    padding: 1.25rem 0.85rem 1rem;
+  }
+
+  .role-desc {
+    font-size: 0.82rem;
+  }
+}

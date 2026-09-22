@@ -1,0 +1,1167 @@
+/* ========================================
+   PATIENT - BASE LAYOUT
+   ======================================== */
+.pat-patients-layout {
+  display: flex;
+  top: 0px;
+  position: relative;
+}
+
+.pat-patients-wrapper {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  transition: background 0.4s ease, color 0.4s ease;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+/* ========================================
+   PATIENT - PAGE HEADER
+   ======================================== */
+.pat-page-header {
+  margin-bottom: 24px;
+  animation: patFadeInDown 0.6s ease;
+}
+
+.pat-page-header-left {
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+.pat-page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.pat-page-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ========================================
+   PATIENT - SUMMARY CARDS
+   ======================================== */
+.pat-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+  animation: patFadeInUp 0.8s ease;
+}
+
+.pat-summary-card {
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.pat-summary-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.pat-summary-card:hover::before {
+  left: 100%;
+}
+
+.pat-icon-box {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pat-summary-card:hover .pat-icon-box {
+  transform: rotate(10deg) scale(1.1);
+}
+
+.pat-patients-icon {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.pat-appointments-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.pat-consultations-icon {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.pat-repeat-icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.pat-summary-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pat-summary-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pat-summary-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  transition: all 0.3s ease;
+}
+
+.pat-summary-card:hover .pat-summary-count {
+  transform: scale(1.05);
+}
+
+.pat-summary-sub {
+  font-size: 0.75rem;
+  color: #22c55e;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ========================================
+   PATIENT - SEARCH BOX
+   ======================================== */
+.pat-toolbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  animation: patFadeInUp 0.9s ease;
+}
+
+.pat-search-box {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+  border: 1px solid;
+  border-radius: 14px;
+  padding: 0 14px 0 40px;
+  display: flex;
+  align-items: center;
+  height: 46px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pat-search-box input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+}
+
+.pat-search-box input::placeholder {
+  color: #94a3b8;
+}
+
+.pat-search-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.pat-search-box:hover .pat-search-icon,
+.pat-search-box:focus-within .pat-search-icon {
+  color: #38bdf8;
+  transform: scale(1.1);
+}
+
+.pat-search-box:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  transform: scale(1.02);
+}
+
+/* ========================================
+   PATIENT - SPLIT AREA
+   ======================================== */
+.pat-split-area {
+  display: flex;
+  gap: 24px;
+  position: relative;
+}
+
+.pat-list-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+.pat-split-area.split-open .pat-list-panel {
+  flex: 0 0 55%;
+}
+
+/* ========================================
+   PATIENT - TABLE HEADER
+   ======================================== */
+.pat-patients-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  padding: 12px 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+/* ========================================
+   PATIENT - LIST
+   ======================================== */
+.pat-patient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pat-empty-list {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  border-radius: 14px;
+  animation: patPulse 2s ease-in-out infinite;
+}
+
+.pat-patient-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: patSlideInLeft 0.5s ease forwards;
+  opacity: 0;
+}
+
+.pat-patient-item:nth-child(1) { animation-delay: 0.05s; }
+.pat-patient-item:nth-child(2) { animation-delay: 0.1s; }
+.pat-patient-item:nth-child(3) { animation-delay: 0.15s; }
+.pat-patient-item:nth-child(4) { animation-delay: 0.2s; }
+.pat-patient-item:nth-child(5) { animation-delay: 0.25s; }
+.pat-patient-item:nth-child(6) { animation-delay: 0.3s; }
+.pat-patient-item:nth-child(7) { animation-delay: 0.35s; }
+
+.pat-patient-item:hover {
+  transform: translateX(8px) scale(1.01);
+}
+
+.pat-patient-item.selected {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.04);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+  transform: scale(1.02);
+}
+
+.pat-patient-col {
+  display: flex;
+  align-items: center;
+}
+
+.pat-name-col {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #38bdf8;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pat-patient-item:hover .pat-avatar {
+  transform: scale(1.08) rotate(-5deg);
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3);
+}
+
+.pat-name-info h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1e293b;
+  transition: color 0.3s ease;
+}
+
+.pat-phone-text {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 2px 0 0 0;
+}
+
+.pat-col-text {
+  font-size: 0.85rem;
+  color: #475569;
+  transition: color 0.3s ease;
+}
+
+.pat-count-text {
+  font-weight: 600;
+}
+
+.pat-consultations-count {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.pat-last-col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 8px;
+}
+
+.pat-chevron {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.pat-patient-item:hover .pat-chevron {
+  transform: translateX(4px);
+  color: #38bdf8;
+}
+
+/* ========================================
+   PATIENT - VIEW MORE
+   ======================================== */
+.pat-view-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 8px 0;
+  animation: patFadeInUp 1s ease;
+}
+
+.pat-view-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 28px;
+  border-radius: 50px;
+  border: 2px solid;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: "Poppins", Arial, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pat-view-more-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.pat-view-more-btn:active {
+  transform: scale(0.95);
+}
+
+.pat-view-more-btn svg {
+  font-size: 0.9rem;
+  transition: transform 0.3s ease;
+}
+
+.pat-view-more-btn:hover svg {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   PATIENT - DETAILS PANEL
+   ======================================== */
+.pat-details-panel {
+  flex: 1;
+  border-radius: 14px;
+  padding: 24px;
+  border: 1px solid;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+  position: sticky;
+  top: 24px;
+  animation: patSlideInRight 0.5s ease;
+}
+
+.pat-details-panel.mobile-open {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  max-height: 100vh;
+  z-index: 1000;
+  border-radius: 0;
+  animation: patSlideIn 0.3s ease;
+}
+
+@keyframes patSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ========================================
+   PATIENT - DETAILS HEADER
+   ======================================== */
+.pat-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pat-details-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ========================================
+   PATIENT - STATUS BADGE
+   ======================================== */
+.pat-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pat-status-badge:hover {
+  transform: scale(1.05);
+}
+
+.pat-status-badge.active {
+  background: rgba(56, 189, 248, 0.12);
+  color: #0ea5e9;
+}
+
+.pat-status-badge.inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #64748b;
+}
+
+/* ========================================
+   PATIENT - CLOSE BUTTON
+   ======================================== */
+.pat-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ef4444;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+}
+
+.pat-close-btn:hover {
+  background: #f1f5f9;
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* ========================================
+   PATIENT - PROFILE SECTION
+   ======================================== */
+.pat-profile-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  animation: patFadeInUp 0.6s ease;
+}
+
+.pat-profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #38bdf8;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pat-profile-avatar:hover {
+  transform: scale(1.05) rotate(-5deg);
+  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.5);
+}
+
+.pat-profile-info {
+  flex: 1;
+}
+
+.pat-profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0px;
+  flex-wrap: wrap;
+}
+
+.pat-profile-name-row h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pat-profile-meta {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 8px 0;
+}
+
+.pat-profile-contact {
+  font-size: 0.8rem;
+  color: #475569;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.pat-profile-contact:hover {
+  transform: translateX(4px);
+  color: #38bdf8;
+}
+
+.pat-profile-contact svg {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.pat-profile-contact:hover svg {
+  transform: scale(1.2);
+  color: #38bdf8;
+}
+
+.pat-profile-id {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.pat-profile-id strong {
+  color: #1e293b;
+}
+
+/* ========================================
+   PATIENT - DETAIL TABS
+   ======================================== */
+.pat-detail-tabs {
+  display: flex;
+  gap: 1px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0;
+  flex-wrap: wrap;
+}
+
+.pat-detail-tab {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748b;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: default;
+  margin-bottom: -1px;
+  font-family: "Poppins", Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.pat-detail-tab.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+  font-weight: 600;
+}
+
+/* ========================================
+   PATIENT - TAB CONTENT
+   ======================================== */
+.pat-tab-content {
+  min-height: 200px;
+}
+
+.pat-section-heading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+}
+
+/* ========================================
+   PATIENT - OVERVIEW SECTION
+   ======================================== */
+.pat-overview-section {
+  animation: patFadeInUp 0.5s ease;
+}
+
+.pat-summary-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pat-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+.pat-stat-item:hover {
+  transform: scale(1.03);
+}
+
+.pat-stat-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pat-stat-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  transition: all 0.3s ease;
+}
+
+.pat-stat-item:hover .pat-stat-value {
+  transform: scale(1.05);
+}
+
+.pat-stat-value.pat-completed {
+  color: #22c55e;
+}
+
+.pat-stat-value.pat-missed {
+  color: #ef4444;
+}
+
+.pat-stat-value.pat-consultations {
+  color: #a855f7;
+}
+
+.pat-timeline-heading {
+  margin-top: 24px;
+}
+
+/* ========================================
+   PATIENT - TIMELINE
+   ======================================== */
+.pat-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pat-timeline-item {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 20px;
+  position: relative;
+  animation: patFadeInUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+.pat-timeline-item:nth-child(1) { animation-delay: 0.05s; }
+.pat-timeline-item:nth-child(2) { animation-delay: 0.1s; }
+.pat-timeline-item:nth-child(3) { animation-delay: 0.15s; }
+.pat-timeline-item:nth-child(4) { animation-delay: 0.2s; }
+.pat-timeline-item:nth-child(5) { animation-delay: 0.25s; }
+
+.pat-timeline-icon-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.pat-tl-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: #ffffff;
+  z-index: 2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pat-timeline-item:hover .pat-tl-icon {
+  transform: scale(1.15);
+}
+
+.pat-appointment-icon {
+  background: #3b82f6;
+}
+
+.pat-consultation-icon {
+  background: #22c55e;
+}
+
+.pat-firstvisit-icon {
+  background: #a855f7;
+}
+
+.pat-timeline-line {
+  width: 2px;
+  flex: 1;
+  background: #e2e8f0;
+  margin-top: 4px;
+  min-height: 30px;
+  transition: background 0.3s ease;
+}
+
+.pat-timeline-item:hover .pat-timeline-line {
+  background: #38bdf8;
+}
+
+.pat-timeline-content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.pat-timeline-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pat-timeline-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pat-timeline-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 50px;
+  text-transform: capitalize;
+  transition: all 0.3s ease;
+}
+
+.pat-timeline-status:hover {
+  transform: scale(1.05);
+}
+
+.pat-timeline-status.completed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.pat-timeline-type {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ========================================
+   PATIENT - ANIMATIONS
+   ======================================== */
+@keyframes patFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes patFadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes patSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes patSlideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes patPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ========================================
+   PATIENT - RESPONSIVE
+   ======================================== */
+@media (max-width: 1200px) {
+  .pat-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pat-split-area.split-open .pat-list-panel {
+    flex: 0 0 50%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .pat-patients-table-header {
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    font-size: 0.6rem;
+    padding: 10px 14px;
+  }
+  .pat-patient-item {
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    padding: 12px 14px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 900px) {
+  .pat-patients-wrapper {
+    padding: 16px;
+  }
+  .pat-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .pat-split-area {
+    flex-direction: column;
+  }
+  .pat-split-area.split-open .pat-list-panel {
+    flex: 1;
+  }
+  .pat-details-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 420px;
+    height: 100vh;
+    max-height: 100vh;
+    z-index: 1000;
+    border-radius: 0;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .pat-details-panel.mobile-open {
+    display: block;
+  }
+  .pat-patients-table-header {
+    display: none;
+  }
+  .pat-patient-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px;
+    width: 100%;
+  }
+  .pat-patient-col {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .pat-name-col {
+    width: 100%;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+  }
+  .pat-last-col {
+    justify-content: space-between;
+  }
+  .pat-view-more-btn {
+    padding: 8px 20px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .pat-summary-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .pat-summary-card {
+    padding: 14px 16px;
+  }
+  .pat-icon-box {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  .pat-summary-count {
+    font-size: 1.2rem;
+  }
+  .pat-search-box {
+    min-width: 100%;
+  }
+  .pat-profile-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  .pat-profile-name-row {
+    justify-content: center;
+  }
+  .pat-profile-contact {
+    justify-content: center;
+  }
+  .pat-summary-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pat-detail-tabs {
+    justify-content: center;
+  }
+  .pat-detail-tab {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .pat-patients-wrapper {
+    padding: 12px;
+  }
+  .pat-page-title {
+    font-size: 1.3rem;
+  }
+  .pat-page-subtitle {
+    font-size: 0.8rem;
+  }
+  .pat-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .pat-summary-card {
+    padding: 12px 14px;
+  }
+  .pat-icon-box {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+  .pat-summary-count {
+    font-size: 1.1rem;
+  }
+  .pat-search-box {
+    min-width: 100%;
+    height: 42px;
+    padding: 0 12px 0 36px;
+  }
+  .pat-search-box input {
+    font-size: 13px;
+  }
+  .pat-search-icon {
+    left: 10px;
+    font-size: 0.8rem;
+  }
+  .pat-patient-item {
+    padding: 12px 14px;
+  }
+  .pat-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .pat-name-info h3 {
+    font-size: 0.8rem;
+  }
+  .pat-phone-text {
+    font-size: 0.65rem;
+  }
+  .pat-col-text {
+    font-size: 0.75rem;
+  }
+  .pat-view-more-btn {
+    padding: 6px 16px;
+    font-size: 0.75rem;
+    gap: 4px;
+  }
+  .pat-details-panel {
+    padding: 16px;
+  }
+  .pat-profile-avatar {
+    width: 50px;
+    height: 50px;
+  }
+  .pat-profile-name-row h2 {
+    font-size: 0.95rem;
+  }
+  .pat-summary-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .pat-stat-item {
+    padding: 8px 10px;
+  }
+  .pat-stat-value {
+    font-size: 1rem;
+  }
+  .pat-timeline-item {
+    gap: 10px;
+  }
+  .pat-tl-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+  .pat-timeline-date {
+    font-size: 0.7rem;
+  }
+  .pat-timeline-type {
+    font-size: 0.7rem;
+  }
+  .pat-detail-tabs {
+    gap: 2px;
+  }
+  .pat-detail-tab {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .pat-patients-wrapper {
+    padding: 8px;
+  }
+  .pat-summary-card {
+    padding: 10px 12px;
+  }
+  .pat-icon-box {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+  .pat-summary-count {
+    font-size: 1rem;
+  }
+  .pat-summary-label {
+    font-size: 0.65rem;
+  }
+  .pat-summary-sub {
+    font-size: 0.6rem;
+  }
+  .pat-patient-item {
+    padding: 10px 12px;
+  }
+  .pat-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  .pat-name-info h3 {
+    font-size: 0.7rem;
+  }
+  .pat-col-text {
+    font-size: 0.65rem;
+  }
+  .pat-view-more-btn {
+    padding: 5px 12px;
+    font-size: 0.65rem;
+  }
+  .pat-profile-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .pat-profile-name-row h2 {
+    font-size: 0.85rem;
+  }
+  .pat-summary-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .pat-details-panel {
+    padding: 12px;
+  }
+}

@@ -1,0 +1,796 @@
+/* =============================================================================
+   PRESCRIPTION TEMPLATE EDITOR
+   ============================================================================= */
+.ept-wrapper {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 28px 40px;
+  background: var(--settings-bg, #f1f5f9);
+  min-height: 100vh;
+}
+
+.ept-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ept-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--ept-border);
+  border-radius: 10px;
+  background: var(--ept-card-bg);
+  color: var(--ept-text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.ept-title {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--ept-text);
+}
+
+.ept-subtitle {
+  margin: 0;
+  color: var(--ept-muted);
+  font-size: 0.95rem;
+}
+
+.ept-header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ept-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 320px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.ept-panel {
+  min-width: 0;
+  background: var(--ept-card-bg);
+  border: 1px solid var(--ept-border);
+  border-radius: 16px;
+  padding: 18px;
+  backdrop-filter: blur(12px);
+}
+
+.ept-panel-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ept-text);
+}
+
+.ept-panel-desc {
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  color: var(--ept-muted);
+}
+
+.ept-template-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ept-template-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid var(--ept-border);
+  border-radius: 12px;
+  background: var(--ept-input-bg);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ept-template-card:hover {
+  border-color: #00bfff;
+}
+
+.ept-template-card.active {
+  border-color: #00bfff;
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
+}
+
+.ept-template-preview {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ept-mini-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.ept-mini-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0e7490;
+  flex-shrink: 0;
+}
+
+.ept-mini-text {
+  font-size: 10px;
+  color: #334155;
+}
+
+.ept-mini-bar {
+  height: 8px;
+}
+
+.ept-template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ept-template-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--ept-text);
+}
+
+.ept-template-desc {
+  font-size: 0.75rem;
+  color: var(--ept-muted);
+  line-height: 1.35;
+}
+
+.ept-template-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00bfff, #32cd32);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.ept-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ept-form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ept-text);
+}
+
+.ept-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--ept-border);
+  border-radius: 10px;
+  background: var(--ept-input-bg);
+  color: var(--ept-text);
+  font-size: 0.9rem;
+}
+
+.ept-logo-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.ept-logo-preview {
+  width: 72px;
+  height: 72px;
+  border: 1px dashed var(--ept-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ept-logo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ept-logo-placeholder {
+  font-size: 1.5rem;
+  color: var(--ept-muted);
+}
+
+.ept-logo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ept-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ept-text);
+  cursor: pointer;
+}
+
+.ept-checkbox-row.disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ept-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ept-btn-primary {
+  background: linear-gradient(135deg, #00bfff, #32cd32);
+  color: #fff;
+}
+
+.ept-btn-secondary {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.ept-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--ept-border);
+  color: var(--ept-text);
+}
+
+.ept-preview-scroll {
+  width: 100%;
+  padding: 12px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ept-preview-scroll > div {
+  transform-origin: top left;
+}
+
+.ept-preview-panel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ept-denied {
+  padding: 40px;
+  text-align: center;
+  color: var(--ept-text);
+}
+
+/* Mini preview bar colors (template cards) */
+.epres-bar-classic {
+  background: linear-gradient(90deg, #0e7490, #00bfff);
+}
+
+.epres-bar-navy {
+  background: #1e3a5f;
+}
+
+.epres-bar-minimal {
+  background: #16a34a;
+}
+
+.epres-bar-blue {
+  background: #2563eb;
+}
+
+/* =============================================================================
+   RESPONSIVE — 1200px tablet landscape
+   ============================================================================= */
+@media (max-width: 1200px) {
+  .ept-layout {
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  }
+
+  .ept-preview-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — 1024px small tablet / landscape
+   ============================================================================= */
+@media (max-width: 1024px) {
+  .ept-wrapper {
+    padding: 20px 20px 36px;
+  }
+
+  .ept-layout {
+    grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — 900px tablet portrait — single column
+   ============================================================================= */
+@media (max-width: 900px) {
+  .ept-wrapper {
+    padding: 18px 16px 32px;
+  }
+
+  .ept-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .ept-page-header {
+    gap: 12px;
+  }
+
+  .ept-header-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — 768px tablet / large phone
+   ============================================================================= */
+@media (max-width: 768px) {
+  .ept-wrapper {
+    padding: 14px 12px 28px;
+  }
+
+  .ept-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ept-page-header {
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .ept-title {
+    font-size: 1.3rem;
+  }
+
+  .ept-header-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .ept-panel {
+    padding: 16px;
+  }
+
+  .ept-logo-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — 640px small tablet / large phone
+   ============================================================================= */
+@media (max-width: 640px) {
+  .ept-wrapper {
+    padding: 12px 10px 24px;
+  }
+
+  .ept-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .ept-back-btn {
+    align-self: flex-start;
+  }
+
+  .ept-title {
+    font-size: 1.2rem;
+  }
+
+  .ept-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .ept-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .ept-layout {
+    gap: 12px;
+  }
+
+  .ept-panel {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .ept-panel-title {
+    font-size: 0.92rem;
+  }
+
+  .ept-panel-desc {
+    font-size: 0.78rem;
+  }
+
+  .ept-logo-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .ept-logo-preview {
+    width: 64px;
+    height: 64px;
+  }
+
+  .ept-logo-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ept-input {
+    font-size: 0.85rem;
+    padding: 9px 10px;
+  }
+
+  .ept-btn {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+
+  .ept-checkbox-row {
+    font-size: 0.8rem;
+  }
+
+  .ept-preview-scroll {
+    padding: 8px;
+  }
+
+  .ept-template-name {
+    font-size: 0.82rem;
+  }
+
+  .ept-template-desc {
+    font-size: 0.7rem;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — 480px phone
+   ============================================================================= */
+@media (max-width: 480px) {
+  .ept-wrapper {
+    padding: 10px 8px 20px;
+  }
+
+  .ept-page-header {
+    margin-bottom: 14px;
+  }
+
+  .ept-title {
+    font-size: 1.1rem;
+  }
+
+  .ept-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .ept-header-actions {
+    gap: 6px;
+  }
+
+  .ept-layout {
+    gap: 10px;
+  }
+
+  .ept-panel {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .ept-panel-title {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+
+  .ept-panel-desc {
+    font-size: 0.74rem;
+    margin-bottom: 10px;
+  }
+
+  .ept-logo-preview {
+    width: 56px;
+    height: 56px;
+  }
+
+  .ept-logo-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ept-logo-actions .ept-btn {
+    width: 100%;
+  }
+
+  .ept-input {
+    font-size: 0.82rem;
+    padding: 8px 9px;
+    border-radius: 8px;
+  }
+
+  .ept-btn {
+    font-size: 0.76rem;
+    padding: 7px 10px;
+  }
+
+  .ept-checkbox-row {
+    font-size: 0.76rem;
+    gap: 6px;
+  }
+
+  .ept-template-name {
+    font-size: 0.78rem;
+  }
+
+  .ept-template-desc {
+    font-size: 0.65rem;
+  }
+
+  .ept-template-card {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .ept-mini-header {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .ept-mini-logo {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ept-mini-text {
+    font-size: 9px;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — 360px very small phone
+   ============================================================================= */
+@media (max-width: 360px) {
+  .ept-wrapper {
+    padding: 8px 6px 16px;
+  }
+
+  .ept-title {
+    font-size: 1rem;
+  }
+
+  .ept-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .ept-panel {
+    padding: 10px;
+  }
+
+  .ept-btn {
+    font-size: 0.7rem;
+    padding: 6px 8px;
+  }
+
+  .ept-logo-preview {
+    width: 48px;
+    height: 48px;
+  }
+
+  .ept-preview-scroll {
+    padding: 4px;
+  }
+}
+
+/* =============================================================================
+   SAVE SUCCESS POPUP
+   ============================================================================= */
+.ept-save-popup-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: eptPopupFadeIn 0.35s ease;
+}
+
+.ept-save-popup-card {
+  width: min(92vw, 440px);
+  padding: 42px 36px;
+  border-radius: 22px;
+  text-align: center;
+  animation: eptPopupScaleIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ept-save-popup-ring {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 22px;
+}
+
+.ept-save-popup-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #00bfff, #32cd32, #00bfff);
+  animation: eptPopupSpin 2.4s linear infinite;
+  opacity: 0.35;
+}
+
+.ept-save-popup-circle {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: eptPopupPulse 0.7s ease;
+}
+
+.ept-save-popup-icon {
+  font-size: 44px;
+  animation: eptPopupIconPop 0.55s ease 0.15s both;
+}
+
+.ept-save-popup-title {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.ept-save-popup-subtitle {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+@keyframes eptPopupFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes eptPopupScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.82) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes eptPopupPulse {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes eptPopupIconPop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-18deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes eptPopupSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   SAVE POPUP RESPONSIVE
+   ============================================================================= */
+@media (max-width: 768px) {
+  .ept-save-popup-card {
+    padding: 34px 24px;
+    width: min(92vw, 380px);
+  }
+
+  .ept-save-popup-title {
+    font-size: 1.05rem;
+  }
+
+  .ept-save-popup-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .ept-save-popup-ring {
+    width: 78px;
+    height: 78px;
+  }
+
+  .ept-save-popup-circle {
+    width: 78px;
+    height: 78px;
+  }
+
+  .ept-save-popup-icon {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ept-save-popup-card {
+    padding: 28px 18px;
+    width: min(94vw, 320px);
+    border-radius: 16px;
+  }
+
+  .ept-save-popup-title {
+    font-size: 0.95rem;
+  }
+
+  .ept-save-popup-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .ept-save-popup-ring {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 16px;
+  }
+
+  .ept-save-popup-circle {
+    width: 68px;
+    height: 68px;
+  }
+
+  .ept-save-popup-icon {
+    font-size: 30px;
+  }
+}

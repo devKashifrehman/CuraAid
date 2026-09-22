@@ -1,0 +1,435 @@
+:root {
+  --blue: #38bdf8;
+  --green: #32cd32;
+  --radius: 14px;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  --shadow-blue: 0 6px 20px rgba(59, 130, 246, 0.4);
+  --shadow-green: 0 6px 20px rgba(50, 205, 50, 0.4);
+  --app-navbar-height: 72px;
+}
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR / DRAWER STYLES
+   ═══════════════════════════════════════════════ */
+
+/* Overlay Backdrop */
+.sidebar-overlay {
+  position: fixed;
+  top: var(--app-navbar-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(3px);
+  z-index: 998;
+  animation: fadeIn 0.3s ease;
+  overscroll-behavior: contain;
+}
+
+/* Hamburger Toggle — fixed to viewport and independent from sidebar animation */
+.sidebar-toggle.hamburger {
+  position: absolute !important;
+  top: 50px;
+  left: 14px;
+  z-index: 1300 !important;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  transition: none;
+  opacity: 1;
+  transform: none !important;
+  pointer-events: auto;
+  box-shadow: none;
+}
+.sidebar {
+  transform: translate3d(0,0,0);
+}
+
+
+
+
+.sidebar-toggle.hamburger:hover {
+  opacity: 1;
+  transform: none !important;
+  box-shadow: none;
+}
+
+/* Sidebar Drawer */
+.sidebar {
+  position: fixed;
+  top: var(--app-navbar-height);
+  left: 0;
+  width: 280px;
+  height: calc(100dvh - var(--app-navbar-height));
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.sidebar.closed {
+  transform: translateX(-110%);
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 20px 18px;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+
+
+.logo-text h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+.logo-text p {
+  font-size: 0.7rem;
+  margin: 2px 0 0;
+  opacity: 0.65;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+
+/* Close Button */
+.sidebar-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+
+.sidebar-close-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  transform: rotate(90deg);
+}
+
+
+
+/* ── Navigation ── */
+.sidebar-nav {
+  flex: 1;
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 0.92rem;
+  font-weight: 500;
+  user-select: none;
+}
+
+
+
+
+.sidebar-item:hover {
+  transform: translateX(4px);
+}
+
+
+
+
+/* Active Item */
+.sidebar-item.active {
+  font-weight: 700;
+}
+
+
+
+
+
+.sidebar-icon {
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-item:hover .sidebar-icon {
+  transform: scale(1.15);
+}
+
+.sidebar-label {
+  letter-spacing: 0.2px;
+}
+
+/* ── Footer Status Card ── */
+.sidebar-footer {
+  padding: 16px;
+  margin-top: auto;
+}
+
+.sidebar-status-card {
+  border-radius: 16px;
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-status-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Doctor: Clinic Status */
+.sidebar-status-card.doctor {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+}
+
+/* Patient: Need Help */
+.sidebar-status-card.patient {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
+}
+
+.status-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.status-info h5 {
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.status-info p {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+.status-online {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #32cd32;
+  box-shadow: 0 0 10px #32cd32;
+  animation: pulse 2s infinite;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(50, 205, 50, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(50, 205, 50, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(50, 205, 50, 0); }
+}
+
+/* ── Scrollbar ── */
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+}
+
+/* ── Admin Specific Styles ── */
+
+/* Admin: Quality Control Card in Footer */
+.sidebar-status-card.admin {
+  background: transparent !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  border: none !important;
+  align-items: stretch;
+  justify-content: center;
+  padding: 8px 10px 10px;
+}
+
+.sidebar-status-card.admin .status-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+}
+
+.sidebar-status-card.admin .status-info h5 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: #ffffff;
+}
+
+.admin-status-image {
+  width: 100%;
+  max-width: 458px;
+  height: auto;
+  max-height: 128px;
+  object-fit: contain;
+  display: block;
+  margin: 0 0 12px;
+}
+
+.sidebar-status-card.admin .status-info p {
+  font-style: italic;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  margin: 0;
+  font-weight: 400;
+  color: black;
+  letter-spacing: 0.3px;
+  line-height: 1.35;
+}
+
+.sidebar-status-card.admin .status-icon-wrap {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-status-card.admin .status-icon-wrap svg {
+  color: #a78bfa;
+  font-size: 1.2rem;
+}
+
+/* Admin menu item active state - keep consistent */
+.sidebar-item.active.admin-active {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* Admin specific hover effects */
+.sidebar-item.admin-item:hover {
+  background: rgba(79, 70, 229, 0.08);
+  transform: translateX(4px);
+  color: #4f46e5;
+}
+
+/* Admin logo badge */
+.sidebar-logo .admin-badge {
+  font-size: 0.55rem;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Admin Panel text in header */
+.logo-text .admin-panel-label {
+  font-size: 0.6rem;
+  margin: 2px 0 0;
+  opacity: 0.6;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #6b7280;
+}
+
+/* Responsive adjustments for admin card */
+@media (max-width: 768px) {
+  .sidebar-status-card.admin .status-info p {
+    font-size: 0.65rem;
+  }
+}
+
+/* Additional admin footer styling for the quote */
+.sidebar-status-card.admin .quote-mark {
+  font-size: 1.2rem;
+  opacity: 0.5;
+  margin-right: 4px;
+}
+
+/* Admin icon colors in sidebar */
+.sidebar-item.admin-item .sidebar-icon {
+  color: #6b7280;
+}
+
+.sidebar-item.admin-item.active .sidebar-icon {
+  color: #ffffff !important;
+}
+
+.sidebar-item.admin-item:hover .sidebar-icon {
+  color: #4f46e5;
+}

@@ -1,0 +1,131 @@
+.ourstory-carousel {
+  width: 100%;
+  position: relative;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+
+/* Slide styling */
+.story-slide {
+  position: relative;
+  height: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s ease;
+}
+
+.story-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  backface-visibility: hidden;
+}
+
+.story-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: background-color 0.35s ease, opacity 0.35s ease;
+  background-color: transparent;
+  opacity: 0;
+}
+.story-content {
+  position: relative;
+  z-index: 2;
+  padding: 28px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 900px;
+  transition: all 0.35s ease;
+  background: transparent;
+}
+
+/* Highlighted text */
+.highlight {
+  padding: 2px 6px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 24px;
+  border-radius: 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn.green {
+  background: #28a745;
+  color: #fff;
+}
+.btn.blue {
+  background: #007bff;
+  color: #fff;
+}
+.btn.yellow {
+  background: #ffc107;
+  color: #222;
+}
+.btn.red {
+  background: #dc3545;
+  color: #fff;
+}
+
+/* Swiper pagination */
+.swiper-pagination {
+  z-index: 5;
+}
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.75);
+  width: 10px;
+  height: 10px;
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .story-slide {
+    height: 360px;
+  }
+  .story-content {
+    padding: 18px;
+  }
+  .story-content h2 {
+    font-size: 1.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .story-slide {
+    height: 280px;
+    border-radius: 12px;
+  }
+  .story-content {
+    padding: 12px;
+  }
+  .story-content h2 {
+    font-size: 1.2rem;
+  }
+  .story-content p {
+    font-size: 0.85rem;
+  }
+}
+/* Default styles for navigation buttons */
+.ourstory-carousel .swiper-button-next,
+.ourstory-carousel .swiper-button-prev {
+  color: black; /* Default black for light mode */
+  transition: color 0.3s ease;
+}

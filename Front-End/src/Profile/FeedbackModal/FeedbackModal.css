@@ -1,0 +1,241 @@
+/* ========================================
+   FEEDBACK MODAL - BASE
+   ======================================== */
+.fbm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  animation: fbmFade 0.25s ease;
+}
+
+.fbm-modal-box {
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow-y: auto;
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 24px;
+  animation: fbmPop 0.3s ease;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.fbm-modal-box * {
+  box-sizing: border-box;
+}
+
+/* ===== HEADER ===== */
+.fbm-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.fbm-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fbm-modal-title svg {
+  color: #f59e0b;
+  font-size: 20px;
+}
+.fbm-modal-title h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.fbm-modal-close {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s;
+}
+
+.fbm-context-label {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+/* ===== AGAINST ===== */
+.fbm-against {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.fbm-against > svg {
+  font-size: 18px;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+.fbm-against-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.fbm-against strong {
+  font-size: 14px;
+}
+.fbm-against-role {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* ===== FIELDS ===== */
+.fbm-field {
+  margin-bottom: 14px;
+}
+.fbm-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.fbm-required {
+  color: #f43f5e;
+}
+.fbm-field textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: 0;
+  resize: vertical;
+  transition: 0.25s;
+}
+.fbm-field textarea.error {
+  border-color: #f43f5e;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15);
+}
+.fbm-error-text {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #f43f5e;
+}
+
+/* ===== RATING ===== */
+.fbm-rating-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fbm-star {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 26px;
+  padding: 2px;
+  line-height: 1;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.fbm-star:hover {
+  transform: scale(1.15);
+}
+.fbm-star svg {
+  color: #cbd5e1;
+}
+.fbm-star.active svg {
+  color: #f59e0b;
+}
+.fbm-rating-label {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ===== ACTIONS ===== */
+.fbm-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+.fbm-modal-btn {
+  padding: 11px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.25s;
+}
+.fbm-modal-btn.primary {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+}
+.fbm-modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(245, 158, 11, 0.4);
+}
+.fbm-modal-btn.secondary {
+  background: transparent;
+  border: 1px solid;
+}
+
+/* ===== SUCCESS ===== */
+.fbm-success-box {
+  text-align: center;
+  padding: 40px 28px;
+}
+.fbm-success-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  color: #fff;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  animation: fbmPop 0.4s ease;
+}
+.fbm-success-box h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+.fbm-success-box p {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.fbm-success-box .fbm-modal-btn.primary {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fbmFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fbmPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

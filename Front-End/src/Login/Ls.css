@@ -1,0 +1,475 @@
+/* ===========================================
+   Global Variables and Base Styles
+   Applies to: Entire app (Login/Signup screens)
+   =========================================== */
+
+:root {
+  --blue: #00bfff;
+  --green: #32cd32;
+  --muted: #777;
+  --bg: #ffffff;
+  --card-radius: 12px;
+  --gap: 18px;
+  --max-w: 960px;
+}
+
+body {
+  font-family: "Poppins", Arial, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  color: #111;
+}
+
+/* ===========================================
+   Modal Overlay and Card
+   Applies to: Login/Signup modal container
+   =========================================== */
+
+/* Overlay blur background behind modal */
+#modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Main modal card */
+#modal-card {
+  border-radius: 16px;
+  padding: 28px;
+  width: 380px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+
+
+/* Close (X) button for modal */
+#close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+  z-index: 9999;
+}
+
+
+/* ===========================================
+   Form Elements
+   Applies to: Labels, Inputs, Icons, Password field
+   =========================================== */
+
+/* Label styling used in Login/Signup forms */
+label {
+  display: block;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+/* Text inputs (email, password, etc.) */
+input {
+  width: 100%;
+  padding: 10px 12px 10px 40px; /* space for leading icon */
+  margin-top: 6px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+}
+
+/* Wrapper to position leading icon inside input */
+.input-icon-group {
+  position: relative;
+  font-size: 23px;
+}
+
+/* Leading icon inside input */
+.input-leading-icon {
+  position: absolute;
+  left: 8px;
+  top: 53%;
+  transform: translateY(-50%);
+  color: var(--green);
+  pointer-events: none;
+}
+
+/* Password input with toggle button container */
+.password-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+
+/* Toggle show/hide password button */
+.toggle-password {
+  padding: 5px 10px;
+  background-color: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.toggle-password:hover {
+  background-color: #0056b3;
+}
+
+/* =========================================== 
+   Primary Action Button
+   Applies to: Login/Signup submit button (#btn)
+   =========================================== */
+
+#btn {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+/* Smaller variant (if used in compact UIs) */
+#btn.small {
+  padding: 6px 10px;
+}
+
+/* Optional login icon wrapper inside button */
+.login-icon-wrapper {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-icon {
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+/* Button background animation (if applied via gradients) */
+@keyframes diagonalFlow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* ===========================================
+   Form Layout Helpers
+   Applies to: Role row, Error messages, Metadata
+   =========================================== */
+
+/* Horizontal role selector row (e.g., Admin/User) */
+#role-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Error box for validation messages */
+#error {
+  background: #ffecec;
+  color: #b00020;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+/* Helper small text under inputs */
+#small {
+  font-size: 13px;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+/* Brand/title text styling in card header */
+#brand {
+  color: var(--blue);
+  margin-bottom: 14px;
+}
+
+/* Signup link under Login form */
+#sign {
+  color: blue;
+  font-size: 15px;
+  list-style: none;
+}
+
+/* ===========================================
+   Divider with "OR"
+   Applies to: Separation between primary and social login
+   =========================================== */
+
+.divider {
+  text-align: center;
+  margin: 15px 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 15px 0;
+}
+
+.divider span {
+  padding: 0 10px;
+  color: #777;
+  font-size: 13px;
+}
+
+/* Horizontal lines on both sides of OR */
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #777;
+  margin: 0 10px; /* space between line and button */
+}
+
+/* Pill-shaped OR badge with neon gradient animation */
+#or {
+  display: inline-block;
+  padding: 6px 18px;
+  font-size: 16px;
+  font-weight: 400;
+  border-radius: 25px;
+  color: white;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #32cd32, #00cfff, #8a2be2);
+  background-size: 150% 100%;
+  box-shadow:
+    0 0 8px #32cd32,
+    0 0 15px #00cfff,
+    0 0 20px #8a2be2;
+  animation: neonFlow 3s ease infinite;
+  transition: 0.3s ease;
+}
+
+/* Neon gradient animation (defined once is enough; currently duplicated) */
+@keyframes neonFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Duplicate of neonFlow kept for parity with original
+@keyframes neonFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+*/
+
+/* ===========================================
+   Auth Footer
+   Applies to: Footer under form with signup link
+   =========================================== */
+
+.auth-footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-footer span {
+  opacity: 0.8;
+}
+
+/* Highlighted signup link with animated underline */
+.signup-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  color: #1a73e8;
+  text-shadow: none;
+}
+
+.signup-link:focus-visible {
+  outline: 2px solid rgba(26, 115, 232, 0.6);
+  outline-offset: 3px;
+}
+
+/* Animated underline effect on hover */
+.signup-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #32cd32, #00cfff, #8a2be2);
+  transition: width 0.3s ease;
+}
+
+.signup-link:hover::after {
+  width: 100%;
+}
+
+.signup-link:hover {
+  transform: translateY(-2px);
+}
+
+/* ===========================================
+   Google Sign-in Button
+   Applies to: Social login button variations
+   =========================================== */
+
+/* Base Google button */
+.google-btn {
+  width: 100%;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+/* Hover treatment (blue bg) */
+.google-btn:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+  color: #ffecec;
+}
+
+/* Icon wrapper and icon size */
+.google-icon {
+  font-size: 20px;
+  transition: all 0.3s ease;
+}
+
+/* Apply gradient fill inside FontAwesome SVG (if used) */
+.google-icon path {
+  fill: url(#googleGradient);
+}
+
+/* Optional white circle behind icon */
+.google-btn .google-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+}
+
+/* Alternative custom Google button */
+.custom-google-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 8px;
+  border: none;
+  padding: 12px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 160ms ease;
+}
+
+
+.custom-google-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Google button text size */
+.google-text {
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+/* password strength feedback */
+#password-feedback {
+  font-size: 13px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.feedback-icon {
+  font-size: 14px;
+}
+
+/* loader inside buttons */
+.loader {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* disabled primary button */
+#btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  #modal-card {
+    width: calc(100% - 32px);
+    padding: 20px;
+    border-radius: 12px;
+  }
+  #modal-overlay {
+    padding: 16px;
+  }
+  label {
+    font-size: 12px;
+  }
+  #btn {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+}

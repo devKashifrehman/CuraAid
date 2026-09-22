@@ -1,0 +1,1237 @@
+
+* {
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------
+   THEME WRAPPER (Flowing layout — no fixed height)
+   ------------------------------------------------- */
+#modal-overlay {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  height: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1000;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  overflow: visible;
+  padding: 1rem 0.75rem 2rem;
+}
+
+#modal-overlay.doctor-doc-overlay {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  height: auto;
+  align-items: flex-start;
+  overflow: visible;
+  padding: 1rem 0.75rem 2rem;
+}
+
+
+
+
+/* -------------------------------------------------
+   MAIN CONTAINER (Wider & Compact)
+   ------------------------------------------------- */
+.doc-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px; /* ← Width barha di */
+  margin: 0 auto;
+  background: transparent;
+  overflow: visible;
+  animation: containerFadeIn 0.5s ease-out;
+}
+
+@keyframes containerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------------------------------------
+   BACK BUTTON (Top Left << only)
+   ------------------------------------------------- */
+.doc-back-btn {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+
+
+
+.doc-back-btn:hover {
+  transform: translateX(-4px);
+}
+
+
+
+
+/* -------------------------------------------------
+   HEADER
+   ------------------------------------------------- */
+.doc-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.025em;
+}
+
+
+
+.doc-subtitle {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 1.75rem;
+  font-weight: 400;
+}
+
+
+
+/* -------------------------------------------------
+   PROGRESS BAR
+   ------------------------------------------------- */
+.progress-wrapper {
+  position: relative;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.progress-line-bg {
+  position: absolute;
+  top: 20px;
+  left: 2rem;
+  right: 2rem;
+  height: 3px;
+  border-radius: 3px;
+  z-index: 0;
+}
+
+
+
+.progress-line-fill {
+  position: absolute;
+  top: 20px;
+  left: 2rem;
+  height: 3px;
+  border-radius: 3px;
+  z-index: 1;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+
+
+.progress-steps {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: default;
+  transition: all 0.3s ease;
+}
+
+.progress-step.clickable {
+  cursor: pointer;
+}
+
+.step-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border: 2px solid;
+  background: transparent;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+
+
+
+
+
+.step-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.3s ease;
+}
+
+
+
+
+.progress-step.clickable:hover .step-circle {
+  transform: scale(1.1);
+}
+
+/* -------------------------------------------------
+   FORM CONTENT (Compact)
+   ------------------------------------------------- */
+.form-content {
+  min-height: auto;
+}
+
+.step-panel {
+  background: transparent;
+}
+
+.animate-in {
+  animation: stepSlideIn 0.35s ease-out;
+}
+
+@keyframes stepSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.step-header h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+
+
+.step-header-icon {
+  font-size: 1.35rem;
+}
+
+
+
+/* -------------------------------------------------
+   FORM ELEMENTS (Tight spacing)
+   ------------------------------------------------- */
+.form-group {
+  margin-bottom: 0.875rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+
+
+.req {
+  color: #fc8181;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border-radius: 10px;
+  border: 2px solid;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #00bfff;
+}
+
+
+
+.form-group input.error {
+  border-color: #fc8181;
+}
+
+.error-text {
+  display: block;
+  font-size: 0.75rem;
+  color: #fc8181;
+  margin-top: 0.2rem;
+}
+
+.hint-text {
+  font-size: 0.78rem;
+  opacity: 0.75;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+
+
+
+/* Form rows */
+.form-row {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-row.two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-row.three-col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+  .form-row.two-col,
+  .form-row.three-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #32cd32;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------
+   INLINE IMAGE UPLOADER (Compact)
+   ------------------------------------------------- */
+.image-uploader-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.upload-btn-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 10px;
+  border: 2px dashed;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+
+
+
+
+
+/* Preview thumbnail */
+.preview-thumb {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+
+
+
+.preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-remove {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #fc8181;
+  color: #ffffff;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* -------------------------------------------------
+   REPEATABLE CARDS (Qualification / Experience)
+   ------------------------------------------------- */
+.repeatable-card {
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+
+
+
+
+.repeatable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+
+/* Icon buttons */
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.icon-btn.danger {
+  color: #fc8181;
+}
+
+.icon-btn.danger:hover {
+  background: rgba(252, 129, 129, 0.15);
+}
+
+/* Add more button */
+.add-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 10px;
+  border: 2px dashed;
+  background: transparent;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.25rem;
+}
+
+
+
+
+
+
+
+/* -------------------------------------------------
+   CHIPS (Specialties)
+   ------------------------------------------------- */
+.chip-input-wrapper {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chip-input-wrapper input {
+  flex: 1;
+}
+
+.chip-add-btn {
+  padding: 0 1.1rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+
+
+
+.chip-add-btn:hover {
+  filter: brightness(1.1);
+  transform: scale(1.05);
+}
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  min-height: auto;
+}
+
+.chips-container.static {
+  margin-top: 0.4rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  animation: chipPop 0.3s ease-out;
+}
+
+
+
+
+
+.chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 0.1rem;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+
+
+.chip button:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.empty-hint {
+  font-size: 0.8rem;
+  font-style: italic;
+  width: 100%;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 10px;
+}
+
+
+
+@keyframes chipPop {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* -------------------------------------------------
+   REVIEW SECTIONS
+   ------------------------------------------------- */
+.review-section {
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.875rem;
+  border: 1px solid;
+}
+
+
+
+.review-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid;
+  transition: color 0.3s ease;
+}
+
+
+.review-edit-link span {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+
+
+
+.review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.review-grid div span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+
+.review-grid div p {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.review-item {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid;
+}
+
+
+
+
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-item p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.review-item small {
+  font-size: 0.75rem;
+}
+
+
+
+
+/* -------------------------------------------------
+   REVIEW GALLERY — LinkedIn Style
+   ------------------------------------------------- */
+.review-gallery-section {
+  margin: 1.25rem 0;
+}
+
+.gallery-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.875rem;
+}
+
+
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.875rem;
+}
+
+.gallery-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+
+.gallery-item:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 0.4rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+  color: #ffffff;
+  text-align: center;
+}
+
+.gallery-overlay span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.gallery-overlay small {
+  display: block;
+  font-size: 0.62rem;
+  opacity: 0.9;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* -------------------------------------------------
+   UPLOAD SECTION (Step 5)
+   ------------------------------------------------- */
+.upload-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 2px dashed;
+}
+
+
+
+.upload-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+
+.required-badge {
+  margin-left: 0.5rem;
+  font-size: 0.65rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+
+
+.upload-hint {
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+
+
+.upload-zone {
+  border: 2px dashed;
+  border-radius: 14px;
+  padding: 2rem 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  margin-bottom: 1.25rem;
+}
+
+
+
+
+
+.upload-zone:hover {
+  border-style: solid;
+}
+
+
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+
+
+/* File list */
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem;
+  border-radius: 10px;
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+
+
+
+.file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.file-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+
+
+
+.file-size {
+  font-size: 0.72rem;
+}
+
+
+
+/* -------------------------------------------------
+   BOTTOM ACTIONS — ONLY NEXT / COMPLETE (CENTERED)
+   ------------------------------------------------- */
+.form-actions {
+  display: flex;
+  justify-content: center; /* ← Centered */
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.doc-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.doc-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+
+
+
+.doc-action-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.doc-action-btn:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* -------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------- */
+@media (max-width: 768px) {
+  #modal-overlay.doctor-doc-overlay {
+    min-height: 100dvh;
+    padding: 0.875rem 0.75rem 1.5rem;
+    align-items: flex-start;
+    overflow-x: hidden;
+  }
+
+  .doc-container {
+    max-width: 100%;
+  }
+
+  .doc-back-btn {
+    top: 0;
+    left: -0.25rem;
+  }
+
+  .doc-title {
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin: 0.55rem 2.5rem 0.25rem;
+  }
+
+  .doc-subtitle {
+    font-size: 0.82rem;
+    line-height: 1.35;
+    margin: 0 1rem 1.4rem;
+  }
+
+  .step-label {
+    display: none;
+  }
+
+  .progress-wrapper {
+    padding: 0 0.15rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .progress-line-bg,
+  .progress-line-fill {
+    top: 18px;
+    left: 1.25rem;
+    right: 1.25rem;
+  }
+
+  .step-circle {
+    width: 38px;
+    height: 38px;
+    font-size: 0.92rem;
+  }
+
+  .step-header {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .step-header h3 {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    min-height: 44px;
+    padding: 0.68rem 0.8rem;
+    font-size: 0.88rem;
+  }
+
+  .repeatable-card,
+  .review-section {
+    border-radius: 10px;
+    padding: 0.8rem;
+  }
+
+  .repeatable-header {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .upload-zone {
+    padding: 1.35rem 0.75rem;
+  }
+
+  .file-item {
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .file-info {
+    min-width: 0;
+  }
+
+  .file-name {
+    overflow-wrap: anywhere;
+  }
+
+  .form-actions {
+    margin-top: 1.1rem;
+  }
+
+  .doc-action-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.8rem 1rem;
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #modal-overlay.doctor-doc-overlay {
+    padding: 0.75rem 0.6rem 1.25rem;
+  }
+
+  .doc-title {
+    font-size: 1.2rem;
+    margin-left: 2rem;
+    margin-right: 2rem;
+  }
+
+  .doc-subtitle {
+    font-size: 0.78rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .progress-line-bg,
+  .progress-line-fill {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .step-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 0.82rem;
+  }
+
+  .form-row {
+    gap: 0.55rem;
+  }
+
+  .image-uploader-row,
+  .chip-input-wrapper {
+    align-items: stretch;
+  }
+
+  .chip-input-wrapper {
+    gap: 0.4rem;
+  }
+
+  .chip-add-btn {
+    min-width: 46px;
+    padding: 0 0.85rem;
+  }
+
+  .upload-btn-compact,
+  .add-more-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .preview-thumb {
+    width: 58px;
+    height: 58px;
+  }
+
+  .review-section h4,
+  .upload-section h4,
+  .gallery-title {
+    align-items: flex-start;
+    line-height: 1.25;
+  }
+
+  .review-edit-link span,
+  .required-badge {
+    white-space: nowrap;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .step-header-icon {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .step-circle {
+    width: 30px;
+    height: 30px;
+  }
+
+  .progress-line-bg,
+  .progress-line-fill {
+    top: 15px;
+    left: 0.85rem;
+    right: 0.85rem;
+  }
+
+  .doc-action-btn {
+    font-size: 0.8rem;
+    letter-spacing: 0.25px;
+  }
+}
+
+
+/* ============================================
+   SPECIALTY AUTOCOMPLETE STYLES
+   ============================================ */
+
+.specialty-input-container {
+  position: relative;
+  flex: 1;
+}
+
+.specialty-input-container .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.specialty-input-container input {
+  padding-left: 38px !important;
+  width: 100%;
+}
+
+.specialty-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  border: 2px solid #d0d0d0;
+}
+
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+
+.suggestion-item:hover {
+  background: rgba(0, 191, 255, 0.1);
+}
+
+
+
+
+.suggestion-item svg {
+  flex-shrink: 0;
+}
+
+
+
+/* Scrollbar styling */
+.specialty-suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.specialty-suggestions::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.specialty-suggestions::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 3px;
+}
+
+
+
+/* ============================================
+   YEAR SELECTOR STYLES
+   ============================================ */
+
+.form-group select.year-select {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border-radius: 10px;
+  border: 2px solid;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+
+/* ============================================
+   DATE INPUT CALENDAR ICON - DARK/LIGHT MODE
+   ============================================ */
+
+
+/* ============================================
+   HINT TEXT STYLING
+   ============================================ */
+
+.hint-text {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.3rem;
+  opacity: 0.7;
+}
+
+
+

@@ -1,0 +1,879 @@
+/* ========================================
+   ADMIN SETTINGS - LAYOUT
+   ======================================== */
+.admset-layout {
+  display: flex;
+  position: relative;
+  top: 0px;
+}
+
+.admset-wrapper {
+  flex: 1;
+  min-height: 100vh;
+  padding: 28px 32px;
+  overflow-y: auto;
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.admset-wrapper * {
+  box-sizing: border-box;
+}
+
+/* ========================================
+   ADMIN SETTINGS - COMMON STYLES
+   ======================================== */
+
+/* ===== PAGE HEADER ===== */
+.admset-page-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.admset-page-header-right {
+  margin-bottom: 18px;
+}
+
+.admset-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.admset-header-right {
+  align-items: flex-start;
+}
+
+.admset-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.5px;
+  text-align: left;
+}
+
+.admset-page-subtitle {
+  font-size: 14px;
+  margin: 0;
+  text-align: left;
+}
+
+/* ===== ADD ADMIN BUTTON ===== */
+.admset-add-admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.admset-add-admin-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+}
+
+.admset-add-admin-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* ===== CONTENT ===== */
+.admset-content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.admset-main-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+}
+
+.admset-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+.admset-manage-card {
+  min-height: fit-content;
+  width: 100%;
+}
+
+/* ===== CARD ===== */
+.admset-card {
+  border-radius: 18px;
+  padding: 26px;
+  transition: all 0.35s ease;
+  animation: admsetCardIn 0.45s ease both;
+}
+
+.admset-card:hover {
+  transform: translateY(-4px);
+}
+
+.admset-glass {
+  backdrop-filter: blur(14px);
+}
+
+.admset-card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.admset-card:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+@keyframes admsetCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== CARD HEADER ===== */
+.admset-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.admset-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.admset-card:hover .admset-icon-wrap {
+  transform: rotate(-6deg) scale(1.08);
+}
+
+.admset-section-icon {
+  font-size: 19px;
+}
+
+.admset-card-head-text {
+  flex: 1;
+  min-width: 160px;
+}
+
+.admset-card-head-text h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.admset-card-head-text p {
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ===== SAVE BUTTON ===== */
+.admset-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.admset-save-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.admset-save-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+/* ===== PROFILE FORM ===== */
+.admset-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Avatar */
+.admset-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.admset-avatar-wrap {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: default;
+  transition: all 0.35s ease;
+}
+
+.admset-avatar-wrap.editable {
+  cursor: pointer;
+}
+
+.admset-avatar-wrap.editable:hover {
+  transform: scale(1.07) rotate(2deg);
+}
+
+.admset-avatar-wrap.locked {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.admset-avatar-wrap.locked:hover {
+  transform: none;
+}
+
+.admset-avatar-wrap.locked .admset-avatar {
+  filter: grayscale(0.35);
+}
+
+.admset-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admset-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admset-avatar-wrap:hover .admset-avatar-overlay {
+  opacity: 1;
+}
+
+.admset-camera-icon {
+  color: #ffffff;
+  font-size: 26px;
+  animation: admsetCameraPulse 1.2s ease-in-out infinite;
+}
+
+.admset-avatar-lock {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admset-avatar-lock-icon {
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+@keyframes admsetCameraPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.admset-file-hidden {
+  display: none;
+}
+
+.admset-avatar-hint {
+  font-size: 12px;
+  margin: 0;
+}
+
+/* ===== FORM GRID ===== */
+.admset-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admset-form-grid.admset-three-col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.admset-form-group.admset-full {
+  grid-column: 1 / -1;
+}
+
+.admset-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admset-form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admset-form-input {
+  padding: 11px 14px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  outline: none;
+  transition: all 0.25s ease;
+  width: 100%;
+}
+
+.admset-form-input::placeholder {
+  font-size: 13px;
+}
+
+.admset-form-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+}
+
+.admset-field-icon {
+  font-size: 14px;
+}
+
+/* ===== PASSWORD ===== */
+.admset-pass-group {
+  position: relative;
+}
+
+.admset-pass-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.admset-pass-wrap .admset-form-input {
+  padding-right: 44px;
+}
+
+.admset-eye-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.admset-password-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.admset-update-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 26px;
+  border: none;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.admset-update-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.admset-update-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none !important;
+}
+
+/* ===== ADMIN LIST ===== */
+.admset-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admset-admin-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  animation: admsetRowIn 0.4s ease both;
+  transform: translateY(0);
+}
+
+.admset-admin-row:hover {
+  transform: translateX(6px);
+}
+
+@keyframes admsetRowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.admset-admin-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid rgba(99, 102, 241, 0.5);
+}
+
+.admset-admin-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admset-admin-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admset-admin-info h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.admset-admin-info p {
+  font-size: 13px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admset-admin-role {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.admset-remove-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.admset-remove-btn:hover {
+  transform: translateY(-2px) scale(1.1);
+}
+
+.admset-spinner-sm {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: admsetSpin 0.6s linear infinite;
+}
+
+@keyframes admsetSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   ADMIN SETTINGS - MODAL
+   ======================================== */
+.admset-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: admsetFadeIn 0.25s ease;
+}
+
+.admset-modal {
+  width: 100%;
+  max-width: 460px;
+  border-radius: 20px;
+  overflow: hidden;
+  animation: admsetModalIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s ease;
+}
+
+@keyframes admsetFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admsetModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admset-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.admset-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.admset-modal-close {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.25s ease;
+}
+
+.admset-modal-close:hover {
+  transform: rotate(90deg) scale(1.1);
+}
+
+.admset-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 24px;
+}
+
+.admset-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+}
+
+.admset-modal-cancel {
+  padding: 10px 22px;
+  border-radius: 11px;
+  border: 1.5px solid rgba(148, 163, 184, 0.4);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.admset-modal-cancel:hover {
+  transform: translateY(-2px);
+}
+
+.admset-modal-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.admset-modal-confirm:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.55);
+}
+
+.admset-modal-confirm:active {
+  transform: translateY(0) scale(0.96);
+}
+
+/* ========================================
+   ADMIN SETTINGS - COMPLETION OVERLAY
+   ======================================== */
+.admset-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: admsetFadeIn 0.3s ease;
+}
+
+.admset-overlay-card {
+  padding: 48px 56px;
+  border-radius: 22px;
+  text-align: center;
+  animation: admsetScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 420px;
+  transition: all 0.3s ease;
+}
+
+@keyframes admsetScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.admset-overlay-circle {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  animation: admsetPulseCircle 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes admsetPulseCircle {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.admset-overlay-icon {
+  font-size: 42px;
+}
+
+.admset-overlay-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.admset-overlay-subtitle {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ========================================
+   ADMIN SETTINGS - RESPONSIVE
+   ======================================== */
+@media (max-width: 900px) {
+  .admset-wrapper {
+    padding: 20px 24px;
+  }
+
+  .admset-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admset-form-grid.admset-three-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admset-wrapper {
+    padding: 16px 18px;
+  }
+
+  .admset-page-title {
+    font-size: 24px;
+  }
+
+  .admset-card {
+    padding: 20px;
+  }
+
+  .admset-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admset-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admset-save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admset-password-actions {
+    justify-content: stretch;
+  }
+
+  .admset-update-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .admset-wrapper {
+    padding: 12px 14px;
+  }
+
+  .admset-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admset-add-admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admset-page-title {
+    font-size: 22px;
+  }
+
+  .admset-card {
+    padding: 16px;
+  }
+
+  .admset-avatar-wrap {
+    width: 88px;
+    height: 88px;
+  }
+
+  .admset-admin-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .admset-admin-role {
+    order: 3;
+  }
+
+  .admset-remove-btn {
+    margin-left: auto;
+    order: 4;
+  }
+
+  .admset-overlay-card {
+    padding: 32px 24px;
+    margin: 16px;
+  }
+
+  .admset-overlay-circle {
+    width: 64px;
+    height: 64px;
+  }
+
+  .admset-overlay-icon {
+    font-size: 32px;
+  }
+
+  .admset-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .admset-modal-cancel,
+  .admset-modal-confirm {
+    width: 100%;
+    justify-content: center;
+  }
+}

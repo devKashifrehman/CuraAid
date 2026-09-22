@@ -1,0 +1,400 @@
+/* =============================================================================
+   E-PRESCRIPTION EDITOR — Clinic doctor panel styles
+   ============================================================================= */
+.epres-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.epres-editor-draft-badge {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #fcd34d;
+}
+
+.epres-editor-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.epres-editor-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.epres-editor-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.epres-editor-expand-btn:hover {
+  background: #f0f9ff;
+  border-color: #00bfff;
+  color: #0369a1;
+}
+
+.epres-editor-preview-wrap {
+  flex-shrink: 0;
+}
+
+.epres-editor-preview {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #e5e7eb;
+  max-height: 220px;
+  position: relative;
+  padding: 0;
+  cursor: zoom-in;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.epres-editor-preview:hover {
+  border-color: #00bfff;
+  box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.15);
+}
+
+.epres-editor-preview .epres-slip {
+  transform: scale(0.42);
+  transform-origin: top left;
+  width: 238%;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* Expanded preview popup */
+.epres-preview-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+}
+
+.epres-preview-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 920px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.epres-preview-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.epres-preview-modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.epres-preview-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.epres-preview-modal-close:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.epres-preview-modal-body {
+  overflow: auto;
+  padding: 16px;
+  background: #e5e7eb;
+}
+
+.epres-preview-modal-body .epres-slip {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.epres-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.epres-editor-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.epres-editor-form-head h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.epres-editor-vitals-form {
+  margin-bottom: 4px;
+}
+
+.epres-editor-vitals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.epres-editor-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px dashed #00bfff;
+  border-radius: 6px;
+  background: #f0f9ff;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.epres-editor-add-btn:hover {
+  background: #e0f2fe;
+}
+
+.epres-editor-med-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  background: #f9fafb;
+}
+
+.epres-editor-med-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.epres-editor-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.epres-editor-remove-btn:hover {
+  background: #fecaca;
+}
+
+.epres-editor-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.epres-editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.epres-editor-field span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.epres-editor-field input {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+}
+
+.epres-editor-field input:focus {
+  border-color: #00bfff;
+  box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.15);
+}
+
+.epres-editor-field textarea {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  resize: vertical;
+  min-height: 72px;
+}
+
+.epres-editor-field textarea:focus {
+  border-color: #00bfff;
+  box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.15);
+}
+
+.epres-editor-field-full {
+  grid-column: 1 / -1;
+}
+
+.epres-editor-diagnosis-form {
+  margin-bottom: 4px;
+}
+
+.epres-editor-field:nth-child(5),
+.epres-editor-field:nth-child(6) {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .epres-editor-preview .epres-slip {
+    transform: scale(0.35);
+    width: 285%;
+  }
+
+  .epres-editor-preview {
+    max-height: 180px;
+  }
+
+  .epres-preview-modal {
+    max-width: 100%;
+    border-radius: 0;
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  .epres-editor-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .epres-editor-field:nth-child(5),
+  .epres-editor-field:nth-child(6) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .epres-editor-fields,
+  .epres-editor-vitals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .epres-editor-field:nth-child(5),
+  .epres-editor-field:nth-child(6) {
+    grid-column: auto;
+  }
+
+  .epres-editor-preview .epres-slip {
+    transform: scale(0.3);
+    width: 333%;
+  }
+
+  .epres-editor-preview {
+    max-height: 150px;
+  }
+}
+
+/* Prescription message bubble in Clinic chat */
+.cli-rx-msg-card {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.cli-rx-msg-card strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.cli-rx-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #fff;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cli-rx-view-btn:hover {
+  background: #f0f9ff;
+}
+
+.cli-other .cli-rx-msg-card {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.cli-other .cli-rx-view-btn {
+  background: #00bfff;
+  color: #fff;
+}
+
+.cli-other .cli-rx-view-btn:hover {
+  background: #0099cc;
+}
