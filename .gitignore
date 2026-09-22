@@ -1,0 +1,19 @@
+# Frontend
+Front-End/node_modules/
+Front-End/.env
+Front-End/build/
+Front-End/dist/
+
+# Backend
+backend/vendor/
+backend/.env
+
+# General
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.qodo/
