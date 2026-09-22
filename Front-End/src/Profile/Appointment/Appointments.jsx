@@ -85,7 +85,35 @@ const mapBackendAppointment = (a) => {
     symptoms: a.symptoms || [],
     notes: a.notes || "",
     reason: a.cancellation_reason || "",
-    rescheduleRequest: a.reschedule_request || null,
+    rescheduleRequest: (() => {
+      const rr = a.reschedule_request;
+      if (!rr || !rr.status) return null;
+      const rrStatusMap = { pending: "Pending Approval", approved: "Approved", rejected: "Not Approved" };
+      const rrDate = rr.suggested_date || "";
+      const rrDateObj = rrDate && rrDate !== rr.suggestedDate
+        ? parseAppointmentDate(rrDate)
+        : null;
+      const rrApprovedDate = rr.suggested_date || rr.suggestedDate || "";
+      const rrApprovedDateObj = rrApprovedDate && rrApprovedDate !== rr.suggestedDate
+        ? parseAppointmentDate(rrApprovedDate)
+        : null;
+      return {
+        suggestedDate: rrDateObj
+          ? rrDateObj.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+          : (rr.suggestedDate || rrDate || ""),
+        suggestedTime: rr.suggested_time || rr.suggestedTime || "",
+        suggestedDay: rr.suggested_day || getDayName(rrDate || rr.suggestedDate) || "",
+        status: rrStatusMap[rr.status] || rr.status,
+        requestedBy: rr.requested_by || "",
+        approvedDate: rr.status === "approved"
+          ? (rrApprovedDateObj
+              ? rrApprovedDateObj.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+              : (rr.suggestedDate || rrApprovedDate || ""))
+          : "",
+        approvedTime: rr.status === "approved" ? (rr.suggested_time || rr.suggestedTime || "") : "",
+        rejectionReason: rr.rejection_reason || "",
+      };
+    })(),
     avatar: null,
     examinationReport: a.examination_report || "",
     prescription: "",
@@ -249,6 +277,16 @@ const generateTimeSlots = () => {
     }
   }
   return slots;
+};
+
+const to12hLabel = (val) => {
+  if (!val || val === "custom") return val || "";
+  const [h, m] = String(val).split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return val;
+  const period = h >= 12 ? "PM" : "AM";
+  let h12 = h % 12;
+  if (h12 === 0) h12 = 12;
+  return `${h12.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")} ${period}`;
 };
 
 const timeSlots = generateTimeSlots();
@@ -719,7 +757,7 @@ const Appointments = () => {
   const handlePatientTimeSelect = (timeValue) => {
     const selectedSlot = timeSlots.find((slot) => slot.value === timeValue);
     if (selectedSlot) {
-      setSuggestedTime(selectedSlot.display);
+      setSuggestedTime(selectedSlot.value);
     }
     setShowTimePicker(false);
   };
@@ -796,9 +834,11 @@ const Appointments = () => {
       apt.rescheduleRequest.suggestedDay || getDayName(suggestedInputDate),
     );
     const timeSlot = timeSlots.find(
-      (s) => s.display === apt.rescheduleRequest.suggestedTime,
+      (s) =>
+        s.value === apt.rescheduleRequest.suggestedTime ||
+        s.display === apt.rescheduleRequest.suggestedTime,
     );
-    setDoctorSelectedTime(timeSlot ? timeSlot.value : "");
+    setDoctorSelectedTime(timeSlot ? timeSlot.value : apt.rescheduleRequest.suggestedTime);
     setDoctorShowDatePicker(false);
     setDoctorShowTimePicker(false);
     setApprovalPopup(true);
@@ -886,7 +926,10 @@ const Appointments = () => {
         }));
       }
       try {
-        await axios.post(`${API_BASE_URL}/api/appointments/${apt?.backendId}/reschedule/approve`, {}, {
+        await axios.post(`${API_BASE_URL}/api/appointments/${apt?.backendId}/reschedule/approve`, {
+          date: doctorSelectedDate,
+          time: doctorSelectedTime,
+        }, {
           headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
           timeout: 15000,
         });
@@ -1820,7 +1863,7 @@ const Appointments = () => {
                       <span className="apt-followup-date">
                         {selected.rescheduleRequest.suggestedDate} •{" "}
                         {selected.rescheduleRequest.suggestedDay} •{" "}
-                        {selected.rescheduleRequest.suggestedTime}
+                        {to12hLabel(selected.rescheduleRequest.suggestedTime)}
                       </span>
                       <span
                         className={`apt-followup-badge ${
@@ -1875,8 +1918,10 @@ const Appointments = () => {
                               {selected.rescheduleRequest.approvedDate ||
                                 selected.date}{" "}
                               •{" "}
-                              {selected.rescheduleRequest.approvedTime ||
-                                selected.time}
+                              {to12hLabel(
+                                selected.rescheduleRequest.approvedTime ||
+                                  selected.time,
+                              )}
                             </span>
                           </div>
                         )}
@@ -2251,7 +2296,7 @@ const Appointments = () => {
                     <input
                       type="text"
                       placeholder="Select Time"
-                      value={suggestedTime}
+                      value={to12hLabel(suggestedTime)}
                       readOnly
                       onClick={() => {
                         setShowTimePicker(!showTimePicker);

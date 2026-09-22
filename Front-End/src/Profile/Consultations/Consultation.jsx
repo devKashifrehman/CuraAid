@@ -200,6 +200,14 @@ const CONSULTATION_TYPES = [
   "Chat Consultation",
 ];
 
+const formatDoctorDisplayName = (name) => {
+  if (!name) return "";
+  const trimmed = String(name).trim();
+  if (!trimmed) return "";
+  if (/^Dr\.?\s+/i.test(trimmed)) return trimmed;
+  return `Dr. ${trimmed}`;
+};
+
 //==================== Data ============================
 const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
 const resolveProfileImage = (img) => {
@@ -399,7 +407,9 @@ const ConsultationItem = ({
     return "consult-badge consult-cancelled";
   };
 
-  const displayName = isPatient ? consultation.doctorName : consultation.patientName;
+  const displayName = isPatient
+    ? formatDoctorDisplayName(consultation.doctorName)
+    : consultation.patientName;
   const displayAvatar = isPatient ? consultation.doctorAvatar : consultation.patientAvatar;
   const initials = displayName.split(" ").filter(Boolean).map(w => w[0]).slice(0, 2).join("").toUpperCase();
   const colors = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ef4444"];
@@ -440,7 +450,7 @@ const ConsultationItem = ({
       </div>
       <div className="consult-item-mid">
         <h3>
-          {isPatient ? consultation.doctorName : consultation.patientName}
+          {displayName}
         </h3>
         <p className="consult-item-meta">
           {[consultation.age ? `${consultation.age} Years` : "", consultation.gender].filter(Boolean).join(", ") || "—"}
@@ -591,10 +601,12 @@ const Consultations = () => {
 
   // ==================== Real-time State ====================
   const [nowTick, setNowTick] = useState(() => Date.now());
+  const userKey = user?.id ?? user?.Id ?? "guest";
+
   const [data, setData] = useState(() => {
-    if (!user?.id) return null;
+    if (!userKey || userKey === "guest") return null;
     try {
-      const cached = localStorage.getItem(`consultations_data_${user.id}`);
+      const cached = localStorage.getItem(`consultations_data_${userKey}`);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) return parsed;
@@ -618,7 +630,7 @@ const Consultations = () => {
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
   const [suggestedDate, setSuggestedDate] = useState("");
   const [suggestedDay, setSuggestedDay] = useState("");
-  const [suggestedTime, setSuggestedTime] = useState("");
+  const [suggestedTime, setSuggestedTime] = useState(""); 
   const [showReschedDatePicker, setShowReschedDatePicker] = useState(false);
   const [showReschedTimePicker, setShowReschedTimePicker] = useState(false);
 
@@ -783,11 +795,14 @@ const Consultations = () => {
 
   const filtered = processedData.filter((c) => {
     const matchesTab = activeTab === "All" || c.displayStatus === activeTab;
-    const searchLower = search.toLowerCase();
+    const searchLower = String(search || "").toLowerCase();
+    const patientName = String(c.patientName || "");
+    const doctorName = String(c.doctorName || "");
+    const consultationId = String(c.id || "");
     const matchesSearch =
-      c.patientName.toLowerCase().includes(searchLower) ||
-      c.doctorName.toLowerCase().includes(searchLower) ||
-      c.id.toLowerCase().includes(searchLower);
+      patientName.toLowerCase().includes(searchLower) ||
+      doctorName.toLowerCase().includes(searchLower) ||
+      consultationId.toLowerCase().includes(searchLower);
     return matchesTab && matchesSearch;
   });
 
@@ -1266,6 +1281,7 @@ const Consultations = () => {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
+    const currentUserKey = user?.id ?? user?.Id ?? "guest";
 
     const fetchConsultations = async () => {
       try {
@@ -1280,7 +1296,9 @@ const Consultations = () => {
           if (JSON.stringify(prev ?? []) === JSON.stringify(next)) return prev;
           return next;
         });
-        localStorage.setItem(`consultations_data_${user?.id || "guest"}`, JSON.stringify(fetched));
+        if (currentUserKey && currentUserKey !== "guest") {
+          localStorage.setItem(`consultations_data_${currentUserKey}`, JSON.stringify(fetched));
+        }
       } catch (err) {
         if (!cancelled) console.error("Failed to fetch consultations:", err?.response?.data || err?.message);
       }
@@ -1295,7 +1313,7 @@ const Consultations = () => {
       cancelled = true;
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [token, user?.id]);
+  }, [token, user?.id, user?.Id]);
 
   const selectedId = selected?.id;
   useEffect(() => {
@@ -1463,9 +1481,14 @@ const Consultations = () => {
                 isDoctor &&
                 effectiveStatus === "Ongoing" &&
                 !selected.rescheduleRequest;
-
-              const displayName = isPatient ? selected.doctorName : selected.patientName;
+ 
+              const displayName = isPatient
+                ? formatDoctorDisplayName(selected.doctorName)
+                : selected.patientName;
               const displayAvatar = isPatient ? selected.doctorAvatar : selected.patientAvatar;
+              const detailMeta = isPatient
+                ? [selected.doctorSpecialty || "Doctor", selected.doctorExperience ? `${selected.doctorExperience} Years Experience` : ""].filter(Boolean).join(" • ") || "Doctor"
+                : [selected.age ? `${selected.age} Years` : "", selected.gender].filter(Boolean).join(", ") || "—";
               const colors = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ef4444"];
               let nameHash = 0;
               for (let i = 0; i < (displayName || "").length; i++) {
@@ -1533,17 +1556,21 @@ const Consultations = () => {
                     </div>
                     <div>
                       <h2>
-                        {selected.patientName}
+                        {displayName}
                       </h2>
                       <p>
-                        {[selected.age ? `${selected.age} Years` : "", selected.gender].filter(Boolean).join(", ") || "—"}
+                        {detailMeta}
                       </p>
-                      <p className="consult-contact">
-                        <FaPhoneAlt /> {selected.phone}
-                      </p>
-                      <p className="consult-contact">
-                        <FaEnvelope /> {selected.email}
-                      </p>
+                      {!isPatient && (
+                        <>
+                          <p className="consult-contact">
+                            <FaPhoneAlt /> {selected.phone}
+                          </p>
+                          <p className="consult-contact">
+                            <FaEnvelope /> {selected.email}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
 

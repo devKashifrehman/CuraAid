@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\Consultation;
 use App\Models\DoctorProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -350,6 +351,14 @@ class AppointmentController extends Controller
                 'approved_by' => 'doctor',
             ]),
         ]);
+
+        // Once approved, the linked consultation (if any) becomes live.
+        if ($appointment->consultation) {
+            $appointment->consultation->update([
+                'status' => Consultation::STATUS_ONGOING,
+                'started_at' => now(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,

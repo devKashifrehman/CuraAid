@@ -16,11 +16,35 @@ import Sidebar from "../Hamburger/sidebar";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
 
-const resolveProfileImage = (img) => {
-  if (!img) return "";
-  if (img.startsWith("http")) return img;
-  if (img.startsWith("/")) return `${API_BASE_URL}${img}`;
-  return `${API_BASE_URL}/storage/${img}`;
+const generateInitialsAvatar = (name = "User") => {
+  const initials = String(name || "User")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("") || "U";
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+      <rect width="128" height="128" fill="#3BB6F3"/>
+      <circle cx="64" cy="64" r="64" fill="rgba(255,255,255,0.12)"/>
+      <text x="64" y="76" font-size="42" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">${initials}</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
+const resolveProfileImage = (img, fallbackName = "User") => {
+  if (!img || typeof img !== "string") return generateInitialsAvatar(fallbackName);
+
+  const trimmed = img.trim();
+  if (!trimmed) return generateInitialsAvatar(fallbackName);
+  if (trimmed.startsWith("http") || trimmed.startsWith("data:")) return trimmed;
+  if (trimmed.startsWith("/")) return `${API_BASE_URL}${trimmed}`;
+
+  const normalized = trimmed.replace(/^storage\//, "");
+  return `${API_BASE_URL}/storage/${normalized}`;
 };
 
 const mapBackendPrescription = (p) => {
@@ -52,23 +76,25 @@ const mapBackendPrescription = (p) => {
     doctorName: p.doctorName || "Doctor",
     doctorSpecialty: p.doctorSpecialty || "",
     doctorPmdc: "",
-    doctorAvatar: resolveProfileImage(p.doctorAvatar || p.doctorImage || p.doctor_profile_image || p.profile_image || ""),
-    patientAvatar: "",
+    doctorAvatar: resolveProfileImage(p.doctorAvatar || p.doctorImage || p.doctor_profile_image || ""),
+    patientAvatar: resolveProfileImage(p.patientAvatar || p.patientImage || p.patient_profile_image || p.patient?.profile_image || ""),
     date: displayDate || "Date not available",
     rawDate: rawDate,
     time: displayTime,
     caseType: "Consultation",
     status: "completed",
     diagnosis: Array.isArray(p.diagnosis) ? p.diagnosis.join(", ") : (p.diagnosis || ""),
-    medicines: (p.medicines || []).map(m => ({
-      name: m.name || m.generic || "Medicine",
-      generic: m.generic || "",
-      route: m.route || "Oral",
-      dosage: m.dosage || m.frequency || "",
-      frequency: m.frequency || "",
-      duration: m.duration || "",
-      comments: m.comments || "",
-    })),
+    medicines: Array.isArray(p.medicines)
+      ? p.medicines.map(m => ({
+          name: m.name || m.generic || "Medicine",
+          generic: m.generic || "",
+          route: m.route || "Oral",
+          dosage: m.dosage || m.frequency || "",
+          frequency: m.frequency || "",
+          duration: m.duration || "",
+          comments: m.comments || "",
+        }))
+      : [],
     advice: p.advice || "",
     allergies: p.allergies || "",
     presentingComplaint: p.presentingComplaint || "",
@@ -83,24 +109,24 @@ const mapBackendPrescription = (p) => {
 };
 
 const mapToEpres = (prescription) => ({
-  patientName: prescription.patientName,
-  presId: `PRES ${new Date().getFullYear()}/${String(prescription.id).padStart(6, "0")}`,
-  patientId: prescription.patientId,
-  doctorName: prescription.doctorName,
-  doctorSpecialty: prescription.doctorSpecialty,
-  patientAge: prescription.patientAge,
-  patientGender: prescription.patientGender,
-  date: prescription.date,
-  diagnosis: prescription.diagnosis,
-  medicines: prescription.medicines,
-  advice: prescription.advice,
+  patientName: prescription.patientName || "Patient",
+  presId: `PRES ${new Date().getFullYear()}/${String(prescription.id ?? 0).padStart(6, "0")}`,
+  patientId: prescription.patientId || "",
+  doctorName: prescription.doctorName || "Doctor",
+  doctorSpecialty: prescription.doctorSpecialty || "",
+  patientAge: prescription.patientAge || "",
+  patientGender: prescription.patientGender || "",
+  date: prescription.date || "",
+  diagnosis: prescription.diagnosis || "",
+  medicines: Array.isArray(prescription.medicines) ? prescription.medicines : [],
+  advice: prescription.advice || "",
   allergies: prescription.allergies || "",
   presentingComplaint: prescription.presentingComplaint || "",
   presentIllness: prescription.presentIllness || "",
   clinicalExamination: prescription.clinicalExamination || "",
   vitals: prescription.vitals || {},
-  notes: prescription.notes,
-  createdOn: `${prescription.date} ${prescription.time}`,
+  notes: prescription.notes || "",
+  createdOn: `${prescription.date || ""} ${prescription.time || ""}`,
   printedBy: new Date().toLocaleString("en-GB"),
 });
 
@@ -116,17 +142,9 @@ const Prescription = () => {
   const [modalPrescription, setModalPrescription] = useState(null);
 
   // ===== PRESCRIPTIONS DATA =====
-  const [prescriptions, setPrescriptions] = useState(() => {
-    if (!user?.id) return null;
-    try {
-      const cached = localStorage.getItem(`prescriptions_data_${user.id}`);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch {}
-    return null;
-  });
+  const userKey = user?.id ?? user?.Id ?? "guest";
+
+  const [prescriptions, setPrescriptions] = useState(null);
 
   useEffect(() => {
     if (!token) return;
@@ -140,12 +158,11 @@ const Prescription = () => {
         });
         if (cancelled) return;
         const fetched = (res.data?.data ?? []).map(mapBackendPrescription);
-        setPrescriptions((prev) => {
-          const next = fetched;
-          if (JSON.stringify(prev ?? []) === JSON.stringify(next)) return prev;
-          return next;
-        });
-        localStorage.setItem(`prescriptions_data_${user?.id || "guest"}`, JSON.stringify(fetched));
+        setPrescriptions(fetched);
+
+        if (userKey && userKey !== "guest") {
+          localStorage.setItem(`prescriptions_data_${userKey}`, JSON.stringify(fetched));
+        }
       } catch (err) {
         if (!cancelled) console.error("Failed to fetch prescriptions:", err?.response?.data || err?.message);
       }
@@ -160,7 +177,7 @@ const Prescription = () => {
       cancelled = true;
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [token, user?.id]);
+  }, [token, userKey]);
 
   // ===== EXPIRY HELPER =====
   const getExpiryInfo = (p) => {
@@ -260,11 +277,15 @@ const Prescription = () => {
       if (expiryInfo.isExpired) return false;
     }
 
+    const query = String(searchQuery || "").toLowerCase();
+    const patientName = String(p.patientName || "");
+    const diagnosis = String(p.diagnosis || "");
+    const doctorName = String(p.doctorName || "");
     const matchesSearch =
-      searchQuery === "" ||
-      p.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.diagnosis.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.doctorName.toLowerCase().includes(searchQuery.toLowerCase());
+      query === "" ||
+      patientName.toLowerCase().includes(query) ||
+      diagnosis.toLowerCase().includes(query) ||
+      doctorName.toLowerCase().includes(query);
 
     if (!matchesSearch) return false;
 
@@ -364,6 +385,24 @@ const Prescription = () => {
                   sortedPrescriptions.map((prescription) => {
                     const expiryInfo = getExpiryInfo(prescription);
                     const isOld = isOlderThan4Months(prescription);
+                    const cardIdentity = isDoctor
+                      ? {
+                          name: prescription.patientName || "Patient",
+                          specialty: "Patient",
+                          avatar: resolveProfileImage(
+                            prescription.patientAvatar || prescription.patientImage || prescription.patient_profile_image || "",
+                            prescription.patientName || "Patient",
+                          ),
+                        }
+                      : {
+                          name: prescription.doctorName || "Doctor",
+                          specialty: prescription.doctorSpecialty || "",
+                          avatar: resolveProfileImage(
+                            prescription.doctorAvatar || prescription.doctorImage || prescription.doctor_profile_image || "",
+                            prescription.doctorName || "Doctor",
+                          ),
+                        };
+
                     return (
                       <div
                         key={prescription.id}
@@ -372,16 +411,20 @@ const Prescription = () => {
                         {/* Card Header */}
                         <div className="prescription-card-header">
                           <img
-                            src={prescription.doctorAvatar || ""}
-                            alt={prescription.doctorName}
+                            src={cardIdentity.avatar || generateInitialsAvatar(cardIdentity.name)}
+                            alt={cardIdentity.name}
                             className="prescription-card-avatar"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = generateInitialsAvatar(cardIdentity.name);
+                            }}
                           />
                           <div className="prescription-card-doctor-info">
                             <h3 className="prescription-card-doctor-name">
-                              {prescription.doctorName}
+                              {cardIdentity.name}
                             </h3>
                             <p className="prescription-card-doctor-specialty">
-                              {prescription.doctorSpecialty}
+                              {cardIdentity.specialty}
                             </p>
                             <p className="prescription-card-date">
                               {prescription.date}
@@ -406,7 +449,7 @@ const Prescription = () => {
                             </span>
                             <p className="prescription-card-value">
                               <FaPrescriptionBottleAlt className="prescription-card-med-icon" />
-                              {prescription.medicines.length} Medicines
+                              {Array.isArray(prescription.medicines) ? prescription.medicines.length : 0} Medicines
                             </p>
                           </div>
                         </div>

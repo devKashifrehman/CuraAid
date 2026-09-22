@@ -1036,7 +1036,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <Sidebar />
+      <Sidebar toggleClassName="dashboard-sidebar-toggle" />
       {/*============================ Overlay Sidebar =================================*/}
       {sidebarOpen && (
         <div

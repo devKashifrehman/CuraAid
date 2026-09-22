@@ -18,14 +18,17 @@ class PrescriptionController extends Controller
         $user = $request->user();
         $doctorProfile = $user->doctorProfile;
 
-        $query = Consultation::with(['doctor.user', 'patient'])
-            ->whereNotNull('prescription');
+        $query = Consultation::with([
+            'doctor' => fn ($q) => $q->select(['id', 'user_id', 'specialties']),
+            'doctor.user' => fn ($q) => $q->select(['id', 'name', 'profile_image']),
+            'patient' => fn ($q) => $q->select(['id', 'name', 'date_of_birth', 'gender', 'profile_image']),
+        ])->whereNotNull('prescription');
 
         $query = $doctorProfile
             ? $query->where('doctor_profile_id', $doctorProfile->id)
             : $query->where('patient_id', $user->id);
 
-        $consultations = $query->orderByDesc('updated_at')->get();
+        $consultations = $query->orderByDesc('updated_at')->limit(200)->get();
 
         $data = $consultations->map(function (Consultation $c) {
             $dateValue = $c->updated_at ?? $c->ended_at ?? $c->started_at ?? $c->created_at ?? $c->appointment?->appointment_date ?? $c->follow_up_date;
@@ -41,6 +44,7 @@ class PrescriptionController extends Controller
                 'doctorName' => $c->doctor?->user?->name,
                 'doctorSpecialty' => $c->doctor?->specialties[0] ?? null,
                 'doctorAvatar' => $c->doctor?->user?->profile_image,
+                'patientAvatar' => $c->patient?->profile_image,
                 'date' => $dateValue?->toDateString(),
                 'time' => $timeValue,
                 'updated_at' => $c->updated_at?->toDateTimeString(),

@@ -40,6 +40,11 @@
   transition: background 0.4s ease, color 0.4s ease;
 }
 
+/* The dashboard menu sits slightly below the shared navbar. */
+.sidebar-toggle.hamburger.dashboard-sidebar-toggle {
+  top: calc(var(--app-navbar-height) + 70px);
+}
+
 /* ========== HEADER ========== */
 .dash-header {
   width: 100%;

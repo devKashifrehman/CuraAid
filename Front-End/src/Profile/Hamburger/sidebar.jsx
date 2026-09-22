@@ -21,7 +21,7 @@ import { ThemeContext } from "../../Theme/ThemeContext";
 import sidebarAdminImage from "../../images/sidebar-admin.png";
 import "./Sidebar.css";
 
-const Sidebar = () => {
+const Sidebar = ({ toggleClassName = "" }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { role, logout } = useContext(AuthContext);
@@ -314,7 +314,7 @@ const Sidebar = () => {
           <button
             className={`sidebar-toggle hamburger ${
               darkMode ? "dark" : "light"
-            }`}
+            } ${toggleClassName}`}
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
           >

@@ -20,7 +20,20 @@ class ConsultationController extends Controller
         $user = $request->user();
         $doctorProfile = $user->doctorProfile;
 
-        $query = Consultation::with(['doctor.user', 'patient', 'appointment']);
+        $query = Consultation::with([
+            'doctor' => fn ($q) => $q->select([
+                'id', 'user_id', 'specialties', 'experience_years',
+            ]),
+            'doctor.user' => fn ($q) => $q->select(['id', 'name', 'profile_image']),
+            'patient' => fn ($q) => $q->select([
+                'id', 'name', 'date_of_birth', 'gender', 'mobile', 'email', 'profile_image',
+            ]),
+            'appointment' => fn ($q) => $q->select([
+                'id', 'appointment_date', 'appointment_time', 'status',
+                'revisit', 'revisit_reason', 'reschedule_request',
+            ]),
+        ]);
+
         $query = $doctorProfile
             ? $query->where('doctor_profile_id', $doctorProfile->id)
             : $query->where('patient_id', $user->id);
@@ -29,7 +42,7 @@ class ConsultationController extends Controller
             $query->where('status', $request->status);
         }
 
-        $consultations = $query->orderByDesc('created_at')->get();
+        $consultations = $query->orderByDesc('created_at')->limit(200)->get();
 
         return response()->json([
             'success' => true,
