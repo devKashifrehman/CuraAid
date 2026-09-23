@@ -25,10 +25,17 @@ class Appointment extends Model
         'cancelled_at',
         'cancellation_reason',
         'examination_report',
+        'prescription',
+        'diagnosis',
+        'lat',
+        'lng',
         'revisit',
         'revisit_reason',
         'reschedule_request',
         'recommended_by_consultation_id',
+        'case_status',
+        'follow_up_date',
+        'follow_up_time',
     ];
 
     protected $casts = [
@@ -37,6 +44,9 @@ class Appointment extends Model
         'cancelled_at' => 'datetime',
         'revisit' => 'boolean',
         'reschedule_request' => 'array',
+        'prescription' => 'array',
+        'diagnosis' => 'array',
+        'follow_up_date' => 'date',
     ];
 
     // Status constants
@@ -81,6 +91,14 @@ class Appointment extends Model
     public function consultation(): HasOne
     {
         return $this->hasOne(Consultation::class, 'appointment_id');
+    }
+
+    /**
+     * Get the source consultation that recommended this appointment (follow-up referral).
+     */
+    public function recommendedByConsultation()
+    {
+        return $this->belongsTo(Consultation::class, 'recommended_by_consultation_id');
     }
 
     /**

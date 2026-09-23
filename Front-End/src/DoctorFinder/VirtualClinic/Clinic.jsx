@@ -63,6 +63,11 @@ const createConsultation = async (doctorProfileId) => {
   return res.data?.data;
 };
 
+const linkConsultationToAppointment = async (appointmentId) => {
+  const res = await api.post("/consultations/link-appointment", { appointment_id: appointmentId });
+  return res.data?.data;
+};
+
 const fetchMessages = async (consultationId) => {
   const res = await api.get(`/consultations/${consultationId}/messages`);
   return res.data?.messages || [];
@@ -75,6 +80,11 @@ const sendMessageApi = async (consultationId, message) => {
 
 const completeConsultation = async (consultationId, data = {}) => {
   const res = await api.post(`/consultations/${consultationId}/complete`, data);
+  return res.data?.data;
+};
+
+const scheduleFollowUpAppointment = async (consultationId, data = {}) => {
+  const res = await api.post(`/consultations/${consultationId}/schedule-appointment`, data);
   return res.data?.data;
 };
 
@@ -116,6 +126,44 @@ const getSignalsApi = async (consultationId, afterId = 0) => {
 const endCallApi = async (consultationId) => {
   const res = await api.post(`/consultations/${consultationId}/call/end`);
   return res.data?.data;
+};
+
+const downloadReport = (report) => {
+  if (!report?.url) return;
+  const name = report.name || "report";
+  const url = report.url;
+
+  if (url.startsWith("data:")) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  }
+
+  const storagePath = url
+    .replace(/^https?:\/\/[^/]+\/storage\//, "")
+    .replace(/^\/+/, "");
+  if (storagePath && !storagePath.startsWith("http") && !storagePath.startsWith("data:")) {
+    const link = document.createElement("a");
+    link.href = `${API_BASE_URL}/api/download/${encodeURIComponent(storagePath)}`;
+    link.download = name;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.target = "_blank";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 const buildClinicRxData = (patientData, doctorData) => {
@@ -186,6 +234,8 @@ const Clinic = () => {
   const passedPatient = location.state?.patient;
   const passedPatientProfile = location.state?.patientProfile;
   const passedConsultationId = location.state?.consultationId || null;
+  const passedAppointmentId = location.state?.appointmentId || null;
+  const fromAppointment = Boolean(location.state?.fromAppointment || (passedAppointmentId && !passedConsultationId));
   const patientData = useMemo(() => passedPatient || {
     id: user?.id ? `#${String(user.id).padStart(5, "0")}` : "#PT00000",
     name: passedPatientProfile?.name || user?.name || "Patient",
@@ -308,7 +358,13 @@ const Clinic = () => {
       try {
         let cid = passedConsultationId;
 
-        if (!cid && passedDoctor?.id) {
+        if (!cid && fromAppointment && passedAppointmentId) {
+          console.log("[Clinic] Linking consultation to appointment:", passedAppointmentId);
+          const consultation = await linkConsultationToAppointment(passedAppointmentId);
+          if (cancelled) return;
+          console.log("[Clinic] Consultation linked:", consultation);
+          cid = consultation?.id || null;
+        } else if (!cid && passedDoctor?.id) {
           console.log("[Clinic] Creating consultation for doctor_profile_id:", passedDoctor.id);
           const consultation = await createConsultation(passedDoctor.id);
           if (cancelled) return;
@@ -338,7 +394,7 @@ const Clinic = () => {
     })();
 
     return () => { cancelled = true; };
-  }, [passedConsultationId, passedDoctor?.id, user]);
+  }, [passedConsultationId, passedDoctor?.id, passedAppointmentId, fromAppointment, user]);
 
   useEffect(() => {
     if (consultationId) {
@@ -600,7 +656,11 @@ const Clinic = () => {
   };
 
   const handleEndConsultation = () => {
-    navigate("/consultations", { replace: true });
+    if (fromAppointment) {
+      navigate("/appointments?tab=active", { replace: true });
+    } else {
+      navigate("/consultations", { replace: true });
+    }
   };
 
   const handleSendMessage = () => {
@@ -740,7 +800,13 @@ const Clinic = () => {
       if (consultationId) {
         completeConsultation(consultationId, { revisit: false }).catch(() => {});
       }
-      setTimeout(() => navigate("/consultations", { replace: true }), 1500);
+      setTimeout(() => {
+        if (fromAppointment) {
+          navigate("/appointments", { replace: true });
+        } else {
+          navigate("/consultations", { replace: true });
+        }
+      }, 1500);
     } else if (status === "revisit") {
       setShowRevisitOptions(true);
     }
@@ -759,12 +825,15 @@ const Clinic = () => {
         minute: "2-digit",
       });
       const displayTime = to12hLabel(selectedTime);
+      const isAppointment = calendarMode === "appointment";
       setMessages((prev) => [
         ...prev,
         {
           id: `temp-schedule-${Date.now()}`,
           sender: "system",
-          text: `📅 Revisit scheduled for ${selectedDate} at ${displayTime} (${calendarMode === "consult" ? "Consultation" : "Appointment"}).`,
+          text: isAppointment
+            ? `📅 Follow-up appointment scheduled for ${selectedDate} at ${displayTime}. This case has been completed and an appointment was created.`
+            : `📅 Revisit scheduled for ${selectedDate} at ${displayTime} (Consultation).`,
           time,
         },
       ]);
@@ -774,12 +843,43 @@ const Clinic = () => {
       setShowCaseCompletion(false);
 
       if (consultationId) {
-        completeConsultation(consultationId, {
-          revisit: true,
-          revisit_reason: `Revisit on ${selectedDate} at ${displayTime}`,
-          follow_up_date: selectedDate,
-          follow_up_time: selectedTime,
-        }).catch(() => {});
+        if (isAppointment) {
+          scheduleFollowUpAppointment(consultationId, {
+            appointment_date: selectedDate,
+            appointment_time: selectedTime,
+          })
+            .then(() => {
+              setTimeout(() => {
+                navigate("/appointments", { replace: true });
+              }, 1500);
+            })
+            .catch((err) => {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: `temp-schedule-${Date.now()}`,
+                  sender: "system",
+                  text:
+                    "⚠️ Could not schedule the appointment: " +
+                    (err?.response?.data?.message || "slot unavailable"),
+                  time: new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                },
+              ]);
+            })
+            .finally(() => {
+              setCalendarMode("");
+            });
+        } else {
+          completeConsultation(consultationId, {
+            revisit: true,
+            revisit_reason: `Revisit on ${selectedDate} at ${displayTime}`,
+            follow_up_date: selectedDate,
+            follow_up_time: selectedTime,
+          }).catch(() => {});
+        }
       }
     }
   };
@@ -1983,19 +2083,7 @@ const Clinic = () => {
                 <button
                   type="button"
                   className="cli-report-viewer-close"
-                  onClick={() => {
-                    if (selectedReport?.url) {
-                      const storagePath = selectedReport.url.replace(/^https?:\/\/[^/]+\/storage\//, "").replace(/^\/+/, "");
-                      const downloadUrl = `${API_BASE_URL}/api/download/${encodeURIComponent(storagePath)}`;
-                      const link = document.createElement("a");
-                      link.href = downloadUrl;
-                      link.download = selectedReport.name || "report";
-                      link.target = "_blank";
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }
-                  }}
+                  onClick={() => downloadReport(selectedReport)}
                   aria-label="Download report"
                   title="Download"
                 >
@@ -2024,7 +2112,7 @@ const Clinic = () => {
                 <div className="cli-report-fallback">
                   <FaFileAlt size={48} />
                   <p>Preview not available for this file type.</p>
-                  <a href={selectedReport.url} download={selectedReport.name}>
+                  <a href={selectedReport.url} onClick={(e) => { e.preventDefault(); downloadReport(selectedReport); }} style={{ cursor: "pointer" }}>
                     Download {selectedReport.name}
                   </a>
                 </div>

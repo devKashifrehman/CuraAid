@@ -144,7 +144,17 @@ const Prescription = () => {
   // ===== PRESCRIPTIONS DATA =====
   const userKey = user?.id ?? user?.Id ?? "guest";
 
-  const [prescriptions, setPrescriptions] = useState(null);
+  const [prescriptions, setPrescriptions] = useState(() => {
+    if (!userKey || userKey === "guest") return null;
+    try {
+      const cached = localStorage.getItem(`prescriptions_data_${userKey}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return null;
+  });
 
   useEffect(() => {
     if (!token) return;
@@ -379,7 +389,7 @@ const Prescription = () => {
                 {prescriptions === null ? null : sortedPrescriptions.length === 0 ? (
                   <div className="prescription-no-data">
                     <FaPrescriptionBottleAlt className="prescription-no-data-icon" />
-                    <p>No prescriptions found</p>
+                    <p>No prescription was found</p>
                   </div>
                 ) : (
                   sortedPrescriptions.map((prescription) => {

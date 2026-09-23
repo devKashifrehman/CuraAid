@@ -174,6 +174,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Update appointment
         Route::put('/{id}', [AppointmentController::class, 'update']);
 
+        // Complete appointment (doctor only), optionally with a revisit
+        Route::post('/{id}/complete', [AppointmentController::class, 'complete']);
+
         // Cancel appointment
         Route::post('/{id}/cancel', [AppointmentController::class, 'cancel']);
 
@@ -195,6 +198,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Create new consultation (from appointment OR from doctor for virtual clinic)
         Route::post('/', [ConsultationController::class, 'store']);
         Route::post('/with-doctor', [ConsultationController::class, 'storeWithDoctor']);
+        Route::post('/link-appointment', [ConsultationController::class, 'linkAppointment']);
 
         // Get single consultation
         Route::get('/{id}', [ConsultationController::class, 'show']);
@@ -208,8 +212,16 @@ Route::middleware('auth:sanctum')->group(function () {
         // Complete consultation (doctor only)
         Route::post('/{id}/complete', [ConsultationController::class, 'complete']);
 
+        // Schedule a follow-up appointment from a consultation (doctor only)
+        Route::post('/{id}/schedule-appointment', [ConsultationController::class, 'scheduleAppointment']);
+
         // Cancel consultation (doctor or patient)
         Route::post('/{id}/cancel', [ConsultationController::class, 'cancel']);
+
+        // Reschedule workflow (directly on the consultation)
+        Route::post('/{id}/reschedule', [ConsultationController::class, 'proposeReschedule']);
+        Route::post('/{id}/reschedule/approve', [ConsultationController::class, 'approveReschedule']);
+        Route::post('/{id}/reschedule/reject', [ConsultationController::class, 'rejectReschedule']);
 
         // Get messages for consultation
         Route::get('/{id}/messages', [ConsultationController::class, 'getMessages']);

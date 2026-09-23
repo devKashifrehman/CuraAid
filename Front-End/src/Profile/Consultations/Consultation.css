@@ -179,6 +179,27 @@
   flex-direction: column;
   gap: 12px;
 }
+
+.consult-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.consult-empty-state p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--consult-muted, #8a94a6);
+}
+
+.consult-empty-icon {
+  font-size: 40px;
+  opacity: 0.4;
+}
 .consult-item {
   display: grid;
   grid-template-columns: 60px 1.4fr 1.3fr auto 24px;

@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Consultation;
 use App\Models\DoctorProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -211,8 +212,15 @@ class AppointmentController extends Controller
         if ($isDoctor) {
             $rules['status'] = 'sometimes|in:pending,scheduled,in_progress,completed,no_show,rejected,cancelled';
             $rules['examination_report'] = 'sometimes|nullable|string';
+            $rules['prescription'] = 'sometimes|nullable|array';
+            $rules['diagnosis'] = 'sometimes|nullable|array';
+            $rules['lat'] = 'sometimes|nullable|numeric';
+            $rules['lng'] = 'sometimes|nullable|numeric';
             $rules['revisit'] = 'sometimes|boolean';
             $rules['revisit_reason'] = 'sometimes|nullable|string|max:1000';
+            $rules['case_status'] = 'sometimes|in:ongoing,revisit,completed,cancelled';
+            $rules['follow_up_date'] = 'sometimes|nullable|date';
+            $rules['follow_up_time'] = 'sometimes|nullable|string|max:5';
             $rules['consultation_type'] = 'sometimes|in:video,audio,chat,physical';
             $rules['duration'] = 'sometimes|integer|min:15|max:120';
         }
@@ -234,6 +242,82 @@ class AppointmentController extends Controller
             'success' => true,
             'message' => 'Appointment updated successfully',
             'data' => $this->formatAppointment($appointment),
+        ]);
+    }
+
+    /**
+     * Complete an appointment (doctor only), optionally with a revisit.
+     * A revisit keeps the case open like consultations: the appointment returns
+     * to in_progress with a scheduled follow-up slot, and only the final
+     * no-revisit completion closes the case out.
+     */
+    public function complete(Request $request, $id)
+    {
+        $user = $request->user();
+        $appointment = Appointment::find($id);
+
+        if (!$appointment || !$this->userCanAccess($user, $appointment)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Appointment not found',
+            ], 404);
+        }
+
+        $doctorProfile = $user->doctorProfile;
+        if (!$doctorProfile) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only doctors can complete an appointment',
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'notes' => 'nullable|string',
+            'examination_report' => 'nullable|string',
+            'revisit' => 'nullable|boolean',
+            'revisit_reason' => 'nullable|string|max:1000',
+            'follow_up_date' => 'nullable|date',
+            'follow_up_time' => 'nullable|string|max:5',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
+        $needsRevisit = (bool) ($data['revisit'] ?? false);
+
+        $appointment->update([
+            'status' => $needsRevisit ? Appointment::STATUS_IN_PROGRESS : Appointment::STATUS_COMPLETED,
+            'case_status' => $needsRevisit ? 'revisit' : 'completed',
+            'revisit' => $needsRevisit,
+            'revisit_reason' => $needsRevisit ? ($data['revisit_reason'] ?? null) : null,
+            'follow_up_date' => $needsRevisit ? ($data['follow_up_date'] ?? null) : null,
+            'follow_up_time' => $needsRevisit ? ($data['follow_up_time'] ?? null) : null,
+            'notes' => $data['notes'] ?? $appointment->notes,
+            'examination_report' => $data['examination_report'] ?? $appointment->examination_report,
+        ]);
+
+        // Keep any linked consultation's case lifecycle in sync.
+        if ($appointment->consultation) {
+            $appointment->consultation->update([
+                'status' => $needsRevisit ? Consultation::STATUS_ONGOING : Consultation::STATUS_COMPLETED,
+                'case_status' => $needsRevisit ? 'revisit' : 'completed',
+                'revisit' => $needsRevisit,
+                'revisit_reason' => $needsRevisit ? ($data['revisit_reason'] ?? null) : null,
+                'follow_up_date' => $needsRevisit ? ($data['follow_up_date'] ?? null) : null,
+                'follow_up_time' => $needsRevisit ? ($data['follow_up_time'] ?? null) : null,
+                'ended_at' => $needsRevisit ? null : now(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $needsRevisit ? 'Appointment kept open with a revisit' : 'Appointment completed successfully',
+            'data' => $this->formatAppointment($appointment->refresh()->load('doctor.user', 'patient')),
         ]);
     }
 
@@ -352,11 +436,13 @@ class AppointmentController extends Controller
             ]),
         ]);
 
-        // Once approved, the linked consultation (if any) becomes live.
+        // Once approved, the linked consultation (if any) stays ongoing but its
+        // activity is driven by the fixed slot (Active 15 min before the time),
+        // so started_at is reset to keep the window logic authoritative.
         if ($appointment->consultation) {
             $appointment->consultation->update([
                 'status' => Consultation::STATUS_ONGOING,
-                'started_at' => now(),
+                'started_at' => null,
             ]);
         }
 
@@ -534,19 +620,52 @@ class AppointmentController extends Controller
 
     private function formatAppointment(Appointment $appointment): array
     {
+        $doctor = $appointment->doctor;
+        $doctorUser = $doctor?->user;
+        $patient = $appointment->patient;
+        $patientAge = $patient?->date_of_birth
+            ? $patient->date_of_birth->age
+            : ($appointment->age ?? null);
+
+        [$doctorLat, $doctorLng] = $this->resolveCoordinates(
+            $doctor,
+            $doctor?->location ?? $doctor?->clinic_address ?? $doctor?->clinic_name ?? ($doctorUser?->address ?? null),
+        );
+        [$patientLat, $patientLng] = $this->resolveCoordinates(
+            $patient,
+            $patient?->address ?? null,
+        );
+
         return [
             'id' => $appointment->id,
             'doctor' => [
                 'id' => $appointment->doctor_profile_id,
-                'name' => $appointment->doctor?->user?->name ?? 'Unknown Doctor',
-                'specialty' => $this->getPrimarySpecialty($appointment->doctor),
+                'name' => $doctorUser?->name ?? 'Unknown Doctor',
+                'specialty' => $this->getPrimarySpecialty($doctor),
+                'location' => $doctor?->location
+                    ?? $doctor?->clinic_address
+                    ?? $doctor?->clinic_name
+                    ?? ($doctorUser?->address ?? null),
+                'experience_years' => $doctor?->experience_years,
+                'avatar' => $doctorUser?->profile_image,
+                'phone' => $doctor?->phone ?? $doctorUser?->mobile,
+                'email' => $doctorUser?->email,
+                'gender' => $doctorUser?->gender,
+                'lat' => $doctorLat,
+                'lng' => $doctorLng,
             ],
             'patient' => [
                 'id' => $appointment->patient_id,
-                'name' => $appointment->patient?->name ?? 'Unknown Patient',
-                'gender' => $appointment->patient?->gender,
-                'phone' => $appointment->patient?->mobile,
-                'email' => $appointment->patient?->email,
+                'name' => $patient?->name ?? 'Unknown Patient',
+                'gender' => $patient?->gender,
+                'phone' => $patient?->mobile,
+                'email' => $patient?->email,
+                'avatar' => $patient?->profile_image,
+                'age' => $patientAge,
+                'date_of_birth' => $patient?->date_of_birth?->toDateString(),
+                'address' => $patient?->address,
+                'lat' => $patientLat,
+                'lng' => $patientLng,
             ],
             'appointment_date' => $appointment->appointment_date?->toDateString(),
             'appointment_time' => $appointment->appointment_time,
@@ -560,14 +679,70 @@ class AppointmentController extends Controller
             'meeting_link' => $appointment->meeting_link,
             'notes' => $appointment->notes,
             'examination_report' => $appointment->examination_report,
+            'prescription' => $appointment->prescription,
+            'diagnosis' => $appointment->diagnosis,
+            'lat' => $appointment->lat,
+            'lng' => $appointment->lng,
+            'source_consultation' => $this->getSourceConsultation($appointment),
+            'previous_prescription' => $this->getPreviousPrescription($appointment),
             'revisit' => $appointment->revisit,
             'revisit_reason' => $appointment->revisit_reason,
+            'case_status' => $appointment->case_status ?? 'ongoing',
+            'follow_up_date' => $appointment->follow_up_date?->toDateString(),
+            'follow_up_time' => $appointment->follow_up_time,
             'reschedule_request' => $appointment->reschedule_request,
             'cancelled_at' => $appointment->cancelled_at,
             'cancellation_reason' => $appointment->cancellation_reason,
             'created_at' => $appointment->created_at,
             'updated_at' => $appointment->updated_at,
         ];
+    }
+
+    /**
+     * Return the most recent prior prescription/diagnosis for this patient
+     * (from another appointment or a completed consultation) so a returning
+     * patient's history shows up in the appointment's prescription editor.
+     */
+    private function getPreviousPrescription(?Appointment $appointment): ?array
+    {
+        if (!$appointment) {
+            return null;
+        }
+
+        $patientId = $appointment->patient_id;
+
+        $previousAppointment = Appointment::where('patient_id', $patientId)
+            ->where('id', '!=', $appointment->id)
+            ->whereNotNull('prescription')
+            ->orderByDesc('updated_at')
+            ->first();
+
+        if ($previousAppointment && $previousAppointment->prescription) {
+            return [
+                'prescription' => $previousAppointment->prescription,
+                'diagnosis' => $previousAppointment->diagnosis,
+                'source' => 'appointment',
+                'appointment_id' => $previousAppointment->id,
+            ];
+        }
+
+        $previousConsultation = Consultation::where('patient_id', $patientId)
+            ->whereNotNull('prescription')
+            ->when($appointment->doctor_profile_id, fn ($q) => $q->where('doctor_profile_id', $appointment->doctor_profile_id))
+            ->where('id', '!=', $appointment->recommended_by_consultation_id)
+            ->orderByDesc('updated_at')
+            ->first();
+
+        if ($previousConsultation && $previousConsultation->prescription) {
+            return [
+                'prescription' => $previousConsultation->prescription,
+                'diagnosis' => $previousConsultation->diagnosis,
+                'source' => 'consultation',
+                'consultation_id' => $previousConsultation->id,
+            ];
+        }
+
+        return null;
     }
 
     private function getPrimarySpecialty(?DoctorProfile $doctor): string
@@ -577,5 +752,94 @@ class AppointmentController extends Controller
         return is_array($specialties) && count($specialties) > 0
             ? $specialties[0]
             : 'General Physician';
+    }
+
+    /**
+     * Resolve lat/lng for a map target. Uses the model's stored coordinates if
+     * present; otherwise geocodes the location string via Nominatim (cached for
+     * the model via a static array so repeated calls within one request do not
+     * hit the network again).
+     *
+     * @param  \Illuminate\Database\Eloquent\Model|null  $model
+     * @return array{0: float|null, 1: float|null}
+     */
+    private function resolveCoordinates(?object $model, ?string $location): array
+    {
+        static $cache = [];
+
+        $cacheKey = $model ? get_class($model) . ':' . ($model->getKey() ?? 0) : md5((string) $location);
+
+        if (array_key_exists($cacheKey, $cache)) {
+            return $cache[$cacheKey];
+        }
+
+        if ($model && $model->lat !== null && $model->lng !== null) {
+            $cache[$cacheKey] = [(float) $model->lat, (float) $model->lng];
+
+            return $cache[$cacheKey];
+        }
+
+        if (!$location) {
+            $cache[$cacheKey] = [null, null];
+
+            return $cache[$cacheKey];
+        }
+
+        try {
+            $response = Http::timeout(4)->get('https://nominatim.openstreetmap.org/search', [
+                'q' => $location,
+                'format' => 'json',
+                'limit' => 1,
+                'countrycodes' => 'pk',
+            ]);
+
+            $results = $response->json();
+
+            if (!empty($results) && isset($results[0]['lat'], $results[0]['lon'])) {
+                $lat = (float) $results[0]['lat'];
+                $lng = (float) $results[0]['lon'];
+
+                if ($model && in_array('lat', $model->getFillable(), true) && in_array('lng', $model->getFillable(), true)) {
+                    $model->forceFill(['lat' => $lat, 'lng' => $lng])->save();
+                }
+
+                $cache[$cacheKey] = [$lat, $lng];
+
+                return [$lat, $lng];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Geocode failed for "' . $location . '": ' . $e->getMessage());
+        }
+
+        $cache[$cacheKey] = [null, null];
+
+        return [null, null];
+    }
+
+    /**
+     * Return the source consultation (recommended_by_consultation_id) when the
+     * appointment was created as a follow-up from a consultation. Lets the
+     * frontend prefill the prescription with the patient's previous data.
+     */
+    private function getSourceConsultation(?Appointment $appointment): ?array
+    {
+        if (!$appointment || !$appointment->recommended_by_consultation_id) {
+            return null;
+        }
+
+        $source = $appointment->recommendedByConsultation;
+
+        if (!$source) {
+            return null;
+        }
+
+        return [
+            'id' => $source->id,
+            'notes' => $source->notes,
+            'prescription' => $source->prescription,
+            'diagnosis' => $source->diagnosis,
+            'examination_notes' => $source->examination_notes,
+            'treatment_plan' => $source->treatment_plan,
+        ];
     }
 }

@@ -33,6 +33,7 @@ import {
   FaPlus,
   FaFlag,
   FaStar,
+  FaPen,
 } from "react-icons/fa";
 import ComplaintModal from "../ComplaintModal/ComplaintModal";
 import FeedbackModal from "../FeedbackModal/FeedbackModal";
@@ -44,11 +45,19 @@ import {
   EPrescriptionEditor,
   buildAppointmentRxData,
   medicinesToTextSummary,
-  summarizeExaminationReport,
 } from "../EPrescription";
 
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+
+const PRE_JOIN_WINDOW_MINUTES = 15;
+
+const resolveProfileImage = (img) => {
+  if (!img) return null;
+  if (img.startsWith("http")) return img;
+  if (img.startsWith("/")) return `${API_BASE_URL}${img}`;
+  return `${API_BASE_URL}/storage/${img}`;
+};
 
 const mapBackendAppointment = (a) => {
   const patient = a.patient || {};
@@ -65,9 +74,14 @@ const mapBackendAppointment = (a) => {
   };
   const typeMap = { video: "Video Call", audio: "Voice Call", chat: "Chat", physical: "In-Person" };
   const dateObj = a.appointment_date ? new Date(a.appointment_date) : null;
+  const followUpObj = a.follow_up_date ? new Date(a.follow_up_date) : null;
+  const completedAtRaw = a.updated_at || a.cancelled_at || null;
   return {
     id: a.id ? `APT-${String(a.id).padStart(5, "0")}` : `APT-${a.id}`,
     backendId: a.id,
+    completedAt: completedAtRaw
+      ? new Date(completedAtRaw.replace(" ", "T")).getTime()
+      : null,
     patientName: patient.name || "Patient",
     doctorName: doctor.name || "Doctor",
     age: a.age || patient.age || "",
@@ -79,12 +93,30 @@ const mapBackendAppointment = (a) => {
     time: a.appointment_time || "",
     type: typeMap[a.consultation_type] || a.consultation_type || "Video Call",
     status: statusMap[a.status] || a.status || "Pending",
-    location: a.meeting_link || "Online",
-    lat: null,
-    lng: null,
-    symptoms: a.symptoms || [],
-    notes: a.notes || "",
+    location: a.doctor?.location || doctor.location || a.meeting_link || "Online",
+    lat: a.lat ?? doctor.lat ?? patient.lat ?? null,
+    lng: a.lng ?? doctor.lng ?? patient.lng ?? null,
+    symptoms: a.symptoms?.length ? a.symptoms : [],
+    notes: a.notes || a.source_consultation?.notes || "",
     reason: a.cancellation_reason || "",
+    caseStatus: a.case_status || "ongoing",
+    followUp: followUpObj ? followUpObj.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : (a.follow_up_date || ""),
+    followUpTime: a.follow_up_time || "",
+    durationMinutes: a.duration || 120,
+    doctorProfileId: doctor.id || null,
+    doctorSpecialty: doctor.specialty || "",
+    doctorExperience: doctor.experience_years || 0,
+    doctorPhone: doctor.phone || "",
+    doctorEmail: doctor.email || "",
+    patientAvatar: resolveProfileImage(patient.avatar),
+    doctorAvatar: resolveProfileImage(doctor.avatar),
+    diagnosis:
+      Array.isArray(a.diagnosis) && a.diagnosis.length
+        ? a.diagnosis
+        : a.source_consultation?.diagnosis || [],
+    prescriptionData: a.prescription || null,
+    sourceConsultation: a.source_consultation || null,
+    previousPrescription: a.previous_prescription || null,
     rescheduleRequest: (() => {
       const rr = a.reschedule_request;
       if (!rr || !rr.status) return null;
@@ -115,8 +147,28 @@ const mapBackendAppointment = (a) => {
       };
     })(),
     avatar: null,
-    examinationReport: a.examination_report || "",
-    prescription: "",
+    examinationReport:
+      a.examination_report ||
+      (a.source_consultation
+        ? [a.source_consultation.examination_notes, a.source_consultation.treatment_plan]
+            .filter(Boolean)
+            .join("\n\n")
+        : "") ||
+      "",
+    prescription: (() => {
+      const pres =
+        a.prescription ||
+        a.source_consultation?.prescription ||
+        a.previous_prescription?.prescription ||
+        null;
+      if (!pres) return "";
+      const meds = (pres.medicines || [])
+        .map((m) => [m.name, m.frequency || m.dosage, m.duration].filter(Boolean).join(" "))
+        .filter(Boolean);
+      const advice = pres.advice || pres.doctorsNotes || "";
+      return [...meds, advice].filter(Boolean).join("\n");
+    })(),
+    prescriptionUpdatedOn: a.updated_at || "",
     revisit: a.revisit || false,
     revisitReason: a.revisit_reason || "",
   };
@@ -125,13 +177,21 @@ const mapBackendAppointment = (a) => {
 //==================== Define Appointment Data ============================
 const defaultAppointmentsData = [];
 
-const COMPLAINT_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
-
 const canFileComplaint = (appointment) => {
   if (!appointment) return false;
-  if (appointment.status !== "Completed") return false;
-  if (!appointment.completedAt) return false;
-  return Date.now() - appointment.completedAt <= COMPLAINT_WINDOW_MS;
+  const s = appointment.status;
+  if (s === "Active" || s === "Ongoing") return true;
+  if (s === "Completed" || s === "Cancelled") {
+    const completedAt = appointment.completedAt ? new Date(appointment.completedAt) : null;
+    if (!completedAt) return false;
+    const now = new Date();
+    return (
+      completedAt.getFullYear() === now.getFullYear() &&
+      completedAt.getMonth() === now.getMonth() &&
+      completedAt.getDate() === now.getDate()
+    );
+  }
+  return false;
 };
 
 // ==================== Date Format Helpers ====================
@@ -363,7 +423,55 @@ const DatePicker = ({ selectedDate, onSelect, onClose, minDate, inputRef }) => {
 };
 
 // ==================== Time Picker Component ====================
+const normalizeTimeValue = (input) => {
+  if (!input) return "";
+  const cleaned = String(input).trim();
+  const m12 = cleaned.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  let hour = null;
+  let minute = null;
+  if (m12) {
+    hour = parseInt(m12[1], 10);
+    minute = parseInt(m12[2], 10);
+    const period = m12[3].toUpperCase();
+    if (period === "PM" && hour !== 12) hour += 12;
+    if (period === "AM" && hour === 12) hour = 0;
+  } else {
+    const m24 = cleaned.match(/^(\d{1,2}):(\d{2})$/);
+    if (m24) {
+      hour = parseInt(m24[1], 10);
+      minute = parseInt(m24[2], 10);
+    } else {
+      return "";
+    }
+  }
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return "";
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
 const TimePicker = ({ selectedTime, onSelect, onClose, inputRef }) => {
+  const [customMode, setCustomMode] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+  const [customError, setCustomError] = useState("");
+
+  const isCustomTime = (val) => {
+    if (!val) return false;
+    const normalized = normalizeTimeValue(val);
+    if (!normalized) return false;
+    return !timeSlots.some((s) => s.value === normalized);
+  };
+
+  const applyCustom = () => {
+    const normalized = normalizeTimeValue(customInput);
+    if (!normalized) {
+      setCustomError("Enter a valid time (e.g., 7:30 AM or 19:30).");
+      return;
+    }
+    setCustomError("");
+    onSelect(normalized);
+    setCustomInput("");
+    setCustomMode(false);
+  };
+
   return (
     <div className="apt-time-picker-popup" ref={inputRef}>
       <div className="apt-time-picker-header">
@@ -382,7 +490,44 @@ const TimePicker = ({ selectedTime, onSelect, onClose, inputRef }) => {
             {slot.display}
           </button>
         ))}
+        <button
+          className={`apt-time-slot-btn apt-time-custom-btn ${
+            customMode || isCustomTime(selectedTime) ? "selected" : ""
+          }`}
+          onClick={() => {
+            setCustomMode((prev) => !prev);
+            setCustomError("");
+            setCustomInput(isCustomTime(selectedTime) ? selectedTime : "");
+          }}
+        >
+          <FaPen /> Custom Time
+        </button>
       </div>
+      {customMode && (
+        <div className="apt-time-custom-row">
+          <input
+            type="text"
+            className="apt-time-custom-input"
+            placeholder="e.g., 7:30 AM or 19:30"
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                applyCustom();
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="apt-time-custom-apply"
+            onClick={applyCustom}
+          >
+            Apply
+          </button>
+          {customError && <span className="apt-time-custom-error">{customError}</span>}
+        </div>
+      )}
     </div>
   );
 };
@@ -458,10 +603,11 @@ const Appointments = () => {
   const [selected, setSelected] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [mobileDrawer, setMobileDrawer] = useState(false);
+  const appointmentUserKey = user?.id ?? user?.Id ?? "guest";
   const [data, setData] = useState(() => {
-    if (!user?.id) return defaultAppointmentsData;
+    if (appointmentUserKey === "guest") return defaultAppointmentsData;
     try {
-      const cached = localStorage.getItem(`appointments_data_${user.id}`);
+      const cached = localStorage.getItem(`appointments_data_${appointmentUserKey}`);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -474,6 +620,7 @@ const Appointments = () => {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
+    const currentUserKey = user?.id ?? user?.Id ?? "guest";
     const fetchAppointments = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/api/appointments`, {
@@ -482,17 +629,34 @@ const Appointments = () => {
         });
         if (cancelled) return;
         const fetched = (res.data?.data ?? []).map(mapBackendAppointment);
-        if (fetched.length > 0) {
-          setData(fetched);
-          localStorage.setItem(`appointments_data_${user?.id || "guest"}`, JSON.stringify(fetched));
+        // Always overwrite cached data with the fresh API response — including
+        // an empty list — so stale cache never lingers and "No appointments"
+        // shows as soon as the backend has no data.
+        setData((prev) => {
+          if (JSON.stringify(prev ?? []) === JSON.stringify(fetched)) return prev;
+          return fetched;
+        });
+        if (currentUserKey && currentUserKey !== "guest") {
+          localStorage.setItem(
+            `appointments_data_${currentUserKey}`,
+            JSON.stringify(fetched),
+          );
         }
       } catch (err) {
         if (!cancelled) console.error("Failed to fetch appointments:", err?.response?.data || err?.message);
       }
     };
     fetchAppointments();
-    return () => { cancelled = true; };
-  }, [token, user?.id]);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchAppointments();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [token, user?.id, user?.Id]);
 
   // ==================== Popup States ====================
   const [cancelPopup, setCancelPopup] = useState(false);
@@ -534,6 +698,10 @@ const Appointments = () => {
   const [revisitPopup, setRevisitPopup] = useState(false);
   const [revisitReason, setRevisitReason] = useState("");
   const [revisitTargetId, setRevisitTargetId] = useState(null);
+  const [revisitDate, setRevisitDate] = useState("");
+  const [revisitTime, setRevisitTime] = useState("");
+  const [revisitShowDatePicker, setRevisitShowDatePicker] = useState(false);
+  const [revisitShowTimePicker, setRevisitShowTimePicker] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
 
   const [complaintTarget, setComplaintTarget] = useState(null);
@@ -550,6 +718,8 @@ const Appointments = () => {
   const timePickerRef = useRef(null);
   const doctorDatePickerRef = useRef(null);
   const doctorTimePickerRef = useRef(null);
+  const revisitDatePickerRef = useRef(null);
+  const revisitTimePickerRef = useRef(null);
 
   // ==================== Tabs Configuration ====================
   const tabs = [
@@ -588,11 +758,32 @@ const Appointments = () => {
   }, []);
 
   /**
-   * Active for 2 hours from appointment start time when:
-   * - date is today (flexible parsing)
-   * - not completed/cancelled
-   * - not pending reschedule approval
-   * Works for Ongoing and approved-reschedule (date/time already updated).
+   * Resolve the slot that drives the Active window, exactly like
+   * consultations: a scheduled revisit follow-up wins, then an approved
+   * reschedule, then the original booking slot.
+   */
+  const getSlotDateTime = useCallback(
+    (apt) => {
+      const isRevisit = apt.caseStatus === "revisit";
+      if (isRevisit && apt.followUp && apt.followUp !== "—") {
+        return { date: apt.followUp, time: apt.followUpTime };
+      }
+      const rr = apt.rescheduleRequest;
+      if (rr?.status === "Approved" && (rr.approvedDate || rr.approvedTime)) {
+        return {
+          date: rr.approvedDate || apt.date,
+          time: rr.approvedTime || apt.time,
+        };
+      }
+      return { date: apt.date, time: apt.time };
+    },
+    [],
+  );
+
+  /**
+   * Active when within the pre-join window before the resolved slot start and
+   * until the appointment duration elapses. Mirrors consultations so a
+   * scheduled revisit re-opens the case in the follow-up window.
    */
   const isCurrentlyActive = useCallback(
     (apt) => {
@@ -601,20 +792,24 @@ const Appointments = () => {
       if (apt.status === "Active") return true;
       if (apt.rescheduleRequest?.status === "Pending Approval") return false;
 
-      const aptDate = parseAppointmentDate(apt.date);
+      const slot = getSlotDateTime(apt);
+      const aptDate = parseAppointmentDate(slot.date);
       if (!aptDate) return false;
 
       const now = new Date(nowTick);
       if (!isSameCalendarDay(aptDate, now)) return false;
 
-      const aptMinutes = parseTimeToMinutes(apt.time);
+      const aptMinutes = parseTimeToMinutes(slot.time);
       if (aptMinutes === null) return false;
 
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const diff = currentMinutes - aptMinutes;
-      return diff >= 0 && diff < ACTIVE_WINDOW_MINUTES;
+      const durationMinutes = apt.durationMinutes || ACTIVE_WINDOW_MINUTES;
+      return (
+        currentMinutes >= aptMinutes - PRE_JOIN_WINDOW_MINUTES &&
+        currentMinutes < aptMinutes + durationMinutes
+      );
     },
-    [parseTimeToMinutes, nowTick],
+    [getSlotDateTime, parseTimeToMinutes, nowTick],
   );
 
   const getEffectiveStatus = useCallback(
@@ -630,6 +825,45 @@ const Appointments = () => {
       return apt.status;
     },
     [isCurrentlyActive],
+  );
+
+  /**
+   * Whether the Active appointment is in the pre-join "waiting" phase or the
+   * "join" phase (slot has started), mirroring consultations.
+   */
+  const getAppointmentPhase = useCallback(
+    (apt) => {
+      const effectiveStatus = getEffectiveStatus(apt);
+      if (effectiveStatus !== "Active") return null;
+
+      const slot = getSlotDateTime(apt);
+      const aptDate = parseAppointmentDate(slot.date);
+      if (!aptDate) return null;
+
+      const now = new Date(nowTick);
+      if (!isSameCalendarDay(aptDate, now)) return null;
+
+      const startMinutes = parseTimeToMinutes(slot.time);
+      if (startMinutes === null) return null;
+
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const durationMinutes = apt.durationMinutes || ACTIVE_WINDOW_MINUTES;
+
+      if (
+        currentMinutes >= startMinutes - PRE_JOIN_WINDOW_MINUTES &&
+        currentMinutes < startMinutes
+      ) {
+        return "waiting";
+      }
+      if (
+        currentMinutes >= startMinutes &&
+        currentMinutes < startMinutes + durationMinutes
+      ) {
+        return "join";
+      }
+      return null;
+    },
+    [getEffectiveStatus, getSlotDateTime, parseTimeToMinutes, nowTick],
   );
 
   const canShowExamReport = useCallback(
@@ -1047,6 +1281,8 @@ const Appointments = () => {
           appointment_time: time,
           notes: selected.notes || "",
           meeting_link: location,
+          lat: newLat,
+          lng: newLng,
         }, {
           headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
           timeout: 15000,
@@ -1064,48 +1300,31 @@ const Appointments = () => {
 
   const saveExaminationReport = async () => {
     if (!selected || !reportText.trim()) return;
-    const summary = summarizeExaminationReport(reportText);
+    const savedReport = reportText.trim();
     setData((prev) =>
       prev.map((a) =>
         a.id === selected.id
           ? {
               ...a,
-              examinationReport: reportText,
-              prescriptionData: a.prescriptionData
-                ? {
-                    ...a.prescriptionData,
-                    diagnosis: a.prescriptionData.diagnosis || summary,
-                    clinicalExamination:
-                      a.prescriptionData.clinicalExamination || summary,
-                  }
-                : a.prescriptionData,
+              examinationReport: savedReport,
             }
           : a,
       ),
     );
     setSelected((prev) => ({
       ...prev,
-      examinationReport: reportText,
-      prescriptionData: prev.prescriptionData
-        ? {
-            ...prev.prescriptionData,
-            diagnosis: prev.prescriptionData.diagnosis || summary,
-            clinicalExamination:
-              prev.prescriptionData.clinicalExamination || summary,
-          }
-        : prev.prescriptionData,
+      examinationReport: savedReport,
     }));
-
-    if (prescriptionEditMode && prescriptionData) {
+    if (prescriptionData) {
       setPrescriptionData((prev) => ({
         ...prev,
-        diagnosis: prev.diagnosis || summary,
-        clinicalExamination: prev.clinicalExamination || summary,
+        clinicalExamination: savedReport,
       }));
     }
+
     try {
       await axios.put(`${API_BASE_URL}/api/appointments/${selected.backendId}`, {
-        examination_report: reportText,
+        examination_report: savedReport,
       }, {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         timeout: 15000,
@@ -1168,12 +1387,9 @@ const Appointments = () => {
     // Background API call
     if (selected.backendId && token) {
       axios.put(
-        `${API_BASE_URL}/api/consultations/${selected.backendId}`,
+        `${API_BASE_URL}/api/appointments/${selected.backendId}`,
         {
-          prescription: {
-            medicines: validMedicines,
-            advice: prescriptionData.doctorsNotes || "",
-          },
+          prescription: updatedRx,
           diagnosis: prescriptionData.diagnosis ? [prescriptionData.diagnosis] : [],
         },
         { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" }, timeout: 15000 }
@@ -1184,13 +1400,8 @@ const Appointments = () => {
   const enablePrescriptionEdit = () => {
     if (!selected) return;
     const base = buildAppointmentRxData(selected);
-    const examSummary = summarizeExaminationReport(
-      selected.examinationReport || reportText || "",
-    );
     setPrescriptionData({
       ...base,
-      diagnosis: base.diagnosis || examSummary,
-      clinicalExamination: base.clinicalExamination || examSummary,
       date: new Date().toLocaleDateString("en-US"),
     });
     setPrescriptionEditMode(true);
@@ -1245,6 +1456,7 @@ const Appointments = () => {
                 ...a,
                 status: "Completed",
                 completedAt: Date.now(),
+                caseStatus: "completed",
                 revisit: false,
                 revisitReason: "",
               }
@@ -1256,6 +1468,7 @@ const Appointments = () => {
           ...prev,
           status: "Completed",
           completedAt: Date.now(),
+          caseStatus: "completed",
           revisit: false,
           revisitReason: "",
         }));
@@ -1266,8 +1479,7 @@ const Appointments = () => {
       }, 1500);
       (async () => {
         try {
-          await axios.put(`${API_BASE_URL}/api/appointments/${apt?.backendId}`, {
-            status: "completed",
+          await axios.post(`${API_BASE_URL}/api/appointments/${apt?.backendId}/complete`, {
             revisit: false,
             revisit_reason: "",
           }, {
@@ -1281,45 +1493,72 @@ const Appointments = () => {
     }
   };
 
+  const handleRevisitDateSelect = (dateStr) => {
+    setRevisitDate(dateStr);
+    setRevisitShowDatePicker(false);
+  };
+
+  const handleRevisitTimeSelect = (timeValue) => {
+    setRevisitTime(timeValue);
+    setRevisitShowTimePicker(false);
+  };
+
   const submitRevisit = async () => {
     if (!revisitReason.trim() || !revisitTargetId) return;
+    if (!revisitDate || !revisitTime) {
+      alert("Please select a follow-up date and time for the revisit.");
+      return;
+    }
     const targetId = revisitTargetId;
     const reason = revisitReason;
     const apt = data.find((a) => a.id === targetId);
-      setData((prev) =>
-        prev.map((a) =>
-          a.id === targetId
-            ? {
-                ...a,
-                status: "Completed",
-                completedAt: Date.now(),
-                revisit: true,
-                revisitReason: reason,
-              }
-            : a,
-        ),
-      );
+    const followUpDisplayDate = formatInputToDisplay(revisitDate);
+    const followUpTimeValue = revisitTime;
+    setData((prev) =>
+      prev.map((a) =>
+        a.id === targetId
+          ? {
+              ...a,
+              status: "Ongoing",
+              completedAt: null,
+              caseStatus: "revisit",
+              revisit: true,
+              revisitReason: reason,
+              followUp: followUpDisplayDate,
+              followUpTime: followUpTimeValue,
+            }
+          : a,
+      ),
+    );
     if (selected && selected.id === targetId) {
       setSelected((prev) => ({
         ...prev,
-        status: "Completed",
-        completedAt: Date.now(),
+        status: "Ongoing",
+        completedAt: null,
+        caseStatus: "revisit",
         revisit: true,
         revisitReason: reason,
+        followUp: followUpDisplayDate,
+        followUpTime: followUpTimeValue,
       }));
     }
     setRevisitPopup(false);
     setRevisitTargetId(null);
     setRevisitReason("");
+    setRevisitDate("");
+    setRevisitTime("");
+    setRevisitShowDatePicker(false);
+    setRevisitShowTimePicker(false);
     setShowCompletion(true);
     setTimeout(() => {
       setShowCompletion(false);
     }, 1500);
     try {
-      await axios.put(`${API_BASE_URL}/api/appointments/${apt?.backendId}`, {
-        status: "completed",
+      await axios.post(`${API_BASE_URL}/api/appointments/${apt?.backendId}/complete`, {
         revisit: true,
         revisit_reason: reason,
+        follow_up_date: revisitDate,
+        follow_up_time: followUpTimeValue,
       }, {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         timeout: 15000,
@@ -1406,7 +1645,9 @@ const Appointments = () => {
     if (!latest) return;
     setSelected((prev) => {
       if (!prev || prev.id !== latest.id) return prev;
-      // Avoid loop: only update when meaningful schedule/status fields changed
+      // Avoid loop: only update when meaningful schedule/status/clinical
+      // fields changed so the visit panel overwrites as soon as fresh data
+      // arrives (same behavior as the Consultation page).
       if (
         prev.date === latest.date &&
         prev.time === latest.time &&
@@ -1414,6 +1655,9 @@ const Appointments = () => {
         prev.status === latest.status &&
         prev.examinationReport === latest.examinationReport &&
         prev.prescription === latest.prescription &&
+        prev.notes === latest.notes &&
+        JSON.stringify(prev.diagnosis) === JSON.stringify(latest.diagnosis) &&
+        JSON.stringify(prev.symptoms) === JSON.stringify(latest.symptoms) &&
         JSON.stringify(prev.rescheduleRequest) ===
           JSON.stringify(latest.rescheduleRequest)
       ) {
@@ -1471,6 +1715,16 @@ const Appointments = () => {
         !doctorTimePickerRef.current.contains(e.target)
       )
         setDoctorShowTimePicker(false);
+      if (
+        revisitDatePickerRef.current &&
+        !revisitDatePickerRef.current.contains(e.target)
+      )
+        setRevisitShowDatePicker(false);
+      if (
+        revisitTimePickerRef.current &&
+        !revisitTimePickerRef.current.contains(e.target)
+      )
+        setRevisitShowTimePicker(false);
     };
     if (
       cancelPopup ||
@@ -1480,7 +1734,9 @@ const Appointments = () => {
       showDatePicker ||
       showTimePicker ||
       doctorShowDatePicker ||
-      doctorShowTimePicker
+      doctorShowTimePicker ||
+      revisitShowDatePicker ||
+      revisitShowTimePicker
     ) {
       document.addEventListener("mousedown", handleClickOutside);
     }
@@ -1494,6 +1750,8 @@ const Appointments = () => {
     showTimePicker,
     doctorShowDatePicker,
     doctorShowTimePicker,
+    revisitShowDatePicker,
+    revisitShowTimePicker,
   ]);
 
   // ==================== Render ====================
@@ -1596,6 +1854,12 @@ const Appointments = () => {
           {/* ============== List Panel Section ============== */}
           <section className="apt-list-panel">
             <div className="apt-appointment-list">
+              {visible.length === 0 && (
+                <div className="apt-empty-state">
+                  <FaCalendarAlt className="apt-empty-icon" />
+                  <p>No appointments was booked</p>
+                </div>
+              )}
               {visible.map((a) => (
                 <div
                   key={a.id}
@@ -1603,8 +1867,8 @@ const Appointments = () => {
                   onClick={() => handleSelect(a)}
                 >
                   <img
-                    src={a.avatar}
-                    alt={a.patientName}
+                    src={isPatient ? a.doctorAvatar : a.patientAvatar}
+                    alt={isPatient ? a.doctorName : a.patientName}
                     className="apt-avatar"
                   />
                   <div className="apt-item-mid">
@@ -1668,7 +1932,10 @@ const Appointments = () => {
 
               {/* ========== Patient Info ========== */}
               <div className="apt-patient-info">
-                <img src={selected.avatar} alt={selected.patientName} />
+                <img
+                  src={isPatient ? selected.doctorAvatar : selected.patientAvatar}
+                  alt={isPatient ? selected.doctorName : selected.patientName}
+                />
                 <div>
                   <h2>
                     {isPatient ? selected.doctorName : selected.patientName}
@@ -1737,7 +2004,45 @@ const Appointments = () => {
                   <span className="apt-info-label">Status</span>
                   <p>{getEffectiveStatus(selected)}</p>
                 </div>
+                <div>
+                  <span className="apt-info-label">Doctor</span>
+                  <p>
+                    {selected.doctorName}
+                    {selected.doctorSpecialty
+                      ? ` — ${selected.doctorSpecialty}`
+                      : ""}
+                    {selected.doctorExperience
+                      ? ` • ${selected.doctorExperience} yrs exp`
+                      : ""}
+                  </p>
+                </div>
               </div>
+
+              {/* ========== Phase Banner (Waiting / Join Now) ========== */}
+              {getEffectiveStatus(selected) === "Active" &&
+                (getAppointmentPhase(selected) === "waiting" ? (
+                  <div className="apt-phase-banner apt-waiting-banner">
+                    <FaClock className="apt-phase-icon" />
+                    <div className="apt-phase-info">
+                      <h4>Appointment is about to start</h4>
+                      <p>
+                        The doctor is being notified. You can join within the
+                        pre-join window.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="apt-phase-banner apt-join-banner">
+                    <div className="apt-phase-info">
+                      <h4>Appointment is live</h4>
+                      <p>Doctor and patient are connected for this appointment.</p>
+                    </div>
+                    <div className="apt-join-now-btn" style={{ pointerEvents: "none" }}>
+                      <span>Doctor: {selected.doctorName}</span>
+                      <span>Patient: {selected.patientName}</span>
+                    </div>
+                  </div>
+                ))}
 
               {/* ========== Location Section ========== */}
               <div className="apt-section">
@@ -1826,6 +2131,39 @@ const Appointments = () => {
                 )}
               </div>
 
+              {/* ========== Diagnosis (read-only, visit summary) ========== */}
+              {selected.diagnosis?.length > 0 && (
+                <div className="apt-section">
+                  <div className="apt-section-title">
+                    <FaStethoscope className="apt-sec-icon symptom" /> Diagnosis
+                  </div>
+                  <div className="apt-chips">
+                    {selected.diagnosis.map((d, i) => (
+                      <span key={`${d}-${i}`} className="apt-chip">
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ========== Examination Report (read-only, visit summary) ========== */}
+              {!(isDoctor && getEffectiveStatus(selected) === "Active") &&
+                selected.examinationReport?.trim() && (
+                  <div className="apt-section">
+                    <div className="apt-section-title">
+                      <FaClipboardList className="apt-sec-icon exam-report" />{" "}
+                      Examination Report
+                    </div>
+                    <div
+                      className="apt-info-card"
+                      style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}
+                    >
+                      {selected.examinationReport}
+                    </div>
+                  </div>
+                )}
+
               {/* ========== Cancellation Reason ========== */}
               {selected.status === "Cancelled" && selected.reason && (
                 <div className="apt-section">
@@ -1837,19 +2175,26 @@ const Appointments = () => {
                 </div>
               )}
 
-              {/* ========== Revisit Reason ========== */}
-              {selected.status === "Completed" &&
-                selected.revisit &&
-                selected.revisitReason && (
-                  <div className="apt-section">
-                    <div className="apt-section-title">
-                      <FaRedo className="apt-sec-icon revisit" /> Revisit Reason
-                    </div>
+              {/* ========== Revisit / Follow-up Slot ========== */}
+              {selected.caseStatus === "revisit" && selected.revisit && (
+                <div className="apt-section">
+                  <div className="apt-section-title">
+                    <FaRedo className="apt-sec-icon revisit" /> Scheduled
+                    Follow-up
+                  </div>
+                  {selected.revisitReason && (
                     <div className="apt-info-card muted">
                       {selected.revisitReason}
                     </div>
-                  </div>
-                )}
+                  )}
+                  {selected.followUp && (
+                    <div className="apt-info-card">
+                      <FaCalendarAlt /> {selected.followUp} •{" "}
+                      {to12hLabel(selected.followUpTime)}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ========== Reschedule Request Section ========== */}
               {selected.rescheduleRequest && (
@@ -2068,6 +2413,15 @@ const Appointments = () => {
                       <FaRedo /> Complete with Revisit
                     </button>
                   </div>
+
+                  <div className="apt-action-buttons active-btns">
+                    <button
+                      className="apt-action-btn cancel"
+                      onClick={(e) => openCancelPopup(selected, e)}
+                    >
+                      <FaTimesCircle /> Cancel Appointment
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -2161,15 +2515,18 @@ const Appointments = () => {
                   </div>
                 )}
 
-              {/* ========== Completed Complaint Button (within 2 hours) ========== */}
+              {/* ========== Complaint Button (mirrors consultations) ========== */}
               {canFileComplaint(selected) && (
-                <div className="apt-action-buttons">
+                <div className="apt-complaint-row">
                   <button
-                    className="apt-action-btn complaint"
+                    className="apt-complaint-btn"
                     onClick={() => openComplaint(selected)}
                   >
-                    <FaFlag /> File Complaint
+                    <FaFlag /> File a Complaint
                   </button>
+                  <p className="apt-complaint-hint">
+                    Something went wrong? Report it to our review team.
+                  </p>
                 </div>
               )}
             </aside>
@@ -2503,8 +2860,11 @@ const Appointments = () => {
 
       {/* ============== Revisit Popup ============== */}
       {revisitPopup && (
-        <div className="apt-popup-overlay">
-          <div className="apt-popup-box" ref={revisitRef}>
+        <div className={`apt-popup-overlay ${darkMode ? "dark" : "light"}`}>
+          <div
+            className={`apt-popup-box ${darkMode ? "dark" : "light"}`}
+            ref={revisitRef}
+          >
             <div className="apt-popup-header">
               <h3>Complete with Revisit</h3>
               <button
@@ -2515,7 +2875,10 @@ const Appointments = () => {
               </button>
             </div>
             <div className="apt-popup-body">
-              <p>Please provide reason for revisit:</p>
+              <p>
+                The case stays open. Please provide the revisit reason and
+                schedule the follow-up slot:
+              </p>
               <textarea
                 className="apt-reason-input"
                 rows={4}
@@ -2523,6 +2886,72 @@ const Appointments = () => {
                 value={revisitReason}
                 onChange={(e) => setRevisitReason(e.target.value)}
               />
+              <AvailableSlotsDisplay />
+              <div className="apt-reschedule-fields">
+                <div className="apt-field-group">
+                  <label>Follow-up Date</label>
+                  <div className="apt-picker-input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="Select Date"
+                      value={revisitDate ? formatInputToDisplay(revisitDate) : ""}
+                      readOnly
+                      onClick={() => {
+                        setRevisitShowDatePicker(!revisitShowDatePicker);
+                        setRevisitShowTimePicker(false);
+                      }}
+                      className="apt-picker-input"
+                    />
+                    <FaCalendarAlt
+                      className="apt-picker-icon"
+                      onClick={() => {
+                        setRevisitShowDatePicker(!revisitShowDatePicker);
+                        setRevisitShowTimePicker(false);
+                      }}
+                    />
+                    {revisitShowDatePicker && (
+                      <DatePicker
+                        selectedDate={revisitDate}
+                        onSelect={handleRevisitDateSelect}
+                        onClose={() => setRevisitShowDatePicker(false)}
+                        inputRef={revisitDatePickerRef}
+                        minDate={new Date().toISOString().split("T")[0]}
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="apt-field-group">
+                  <label>Follow-up Time</label>
+                  <div className="apt-picker-input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="Select Time"
+                      value={to12hLabel(revisitTime)}
+                      readOnly
+                      onClick={() => {
+                        setRevisitShowTimePicker(!revisitShowTimePicker);
+                        setRevisitShowDatePicker(false);
+                      }}
+                      className="apt-picker-input"
+                    />
+                    <FaClock
+                      className="apt-picker-icon"
+                      onClick={() => {
+                        setRevisitShowTimePicker(!revisitShowTimePicker);
+                        setRevisitShowDatePicker(false);
+                      }}
+                    />
+                    {revisitShowTimePicker && (
+                      <TimePicker
+                        selectedTime={revisitTime}
+                        onSelect={handleRevisitTimeSelect}
+                        onClose={() => setRevisitShowTimePicker(false)}
+                        inputRef={revisitTimePickerRef}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="apt-popup-footer">
               <button
@@ -2533,7 +2962,7 @@ const Appointments = () => {
               </button>
               <button
                 className="apt-popup-btn primary"
-                disabled={!revisitReason.trim()}
+                disabled={!revisitReason.trim() || !revisitDate || !revisitTime}
                 onClick={submitRevisit}
               >
                 Submit & Complete

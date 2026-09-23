@@ -29,6 +29,8 @@ class Consultation extends Model
         'treatment_plan',
         'case_status',
         'active_call',
+        'reschedule_request',
+        'converted_to_appointment',
     ];
 
     protected $casts = [
@@ -41,6 +43,8 @@ class Consultation extends Model
         'rating' => 'integer',
         'revisit' => 'boolean',
         'active_call' => 'array',
+        'reschedule_request' => 'array',
+        'converted_to_appointment' => 'boolean',
     ];
 
     public function signals(): HasMany

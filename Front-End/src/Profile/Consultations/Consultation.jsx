@@ -243,6 +243,33 @@ const mapBackendConsultation = (c) => {
     ageVal = Math.floor((now - bd) / (365.25 * 24 * 60 * 60 * 1000));
   }
 
+  const rrRaw = c.reschedule_request || c.appointment?.reschedule_request || null;
+  const rescheduleStatus =
+    rrRaw && rrRaw.status
+      ? ({ pending: "Pending Approval", approved: "Approved", rejected: "Not Approved" })[rrRaw.status] || rrRaw.status
+      : null;
+  const isApprovedSlot = rescheduleStatus === "Approved";
+  const approvedDateRaw = isApprovedSlot
+    ? rrRaw.approved_date || rrRaw.suggested_date || ""
+    : "";
+  const approvedTimeRaw = isApprovedSlot
+    ? rrRaw.approved_time || rrRaw.suggested_time || ""
+    : "";
+
+  const baseDate = c.created_at
+    ? new Date(c.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : "";
+  const baseDay = c.created_at
+    ? new Date(c.created_at).toLocaleDateString("en-US", { weekday: "long" })
+    : "";
+  const baseTime = c.created_at
+    ? new Date(c.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    : "";
+
+  const slotDate = approvedDateRaw ? formatInputToDisplay(approvedDateRaw) : "";
+  const slotDay = approvedDateRaw ? getDayName(approvedDateRaw) : "";
+  const slotTime = approvedTimeRaw ? to12hLabel(approvedTimeRaw) : "";
+
   return {
     id: c.id ? `CONS-${String(c.id).padStart(5, "0")}` : `CONS-${c.id}`,
     backendId: c.id,
@@ -259,9 +286,9 @@ const mapBackendConsultation = (c) => {
     gender: patient.gender || "",
     phone: patient.mobile || patient.phone || "",
     email: patient.email || "",
-    date: c.created_at ? new Date(c.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "",
-    day: c.created_at ? new Date(c.created_at).toLocaleDateString("en-US", { weekday: "long" }) : "",
-    time: c.created_at ? new Date(c.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "",
+    date: isApprovedSlot && slotDate ? slotDate : baseDate,
+    day: isApprovedSlot && slotDay ? slotDay : baseDay,
+    time: isApprovedSlot && slotTime ? slotTime : baseTime,
     type: typeMap[c.type] || c.type || "Chat Consultation",
     startedAt: c.started_at || null,
     durationMinutes: (() => {
@@ -296,17 +323,19 @@ const mapBackendConsultation = (c) => {
     followUpTime: c.follow_up_time || "",
     followUpStatus: "",
     rescheduleRequest: (() => {
-      const rr = c.appointment?.reschedule_request;
+      const rr = c.reschedule_request || c.appointment?.reschedule_request;
       if (!rr || !rr.status) return null;
       const statusMap = { pending: "Pending Approval", approved: "Approved", rejected: "Not Approved" };
+      const approvedDate = rr.approved_date || (rr.status === "approved" ? rr.suggested_date : "");
+      const approvedTime = rr.approved_time || (rr.status === "approved" ? rr.suggested_time : "");
       return {
-        suggestedDate: rr.suggested_date || "",
+        suggestedDate: rr.suggested_date ? formatInputToDisplay(rr.suggested_date) : "",
         suggestedTime: rr.suggested_time || "",
-        suggestedDay: rr.suggested_date ? new Date(rr.suggested_date).toLocaleDateString("en-US", { weekday: "long" }) : "",
+        suggestedDay: rr.suggested_date ? getDayName(rr.suggested_date) : "",
         status: statusMap[rr.status] || rr.status,
         requestedBy: rr.requested_by || "",
-        approvedDate: rr.status === "approved" ? (rr.suggested_date || "") : "",
-        approvedTime: rr.status === "approved" ? (rr.suggested_time || "") : "",
+        approvedDate: approvedDate ? formatInputToDisplay(approvedDate) : "",
+        approvedTime: approvedTime ? to12hLabel(approvedTime) : "",
         rejectionReason: rr.rejection_reason || "",
         appointmentId: c.appointment?.id || null,
       };
@@ -586,6 +615,7 @@ const Consultations = () => {
     if (tabParam === "completed") return "Completed";
     if (tabParam === "cancelled") return "Cancelled";
     if (tabParam === "active") return "Active";
+    if (tabParam === "rescheduled") return "Rescheduled";
     return "All";
   };
 
@@ -687,9 +717,24 @@ const Consultations = () => {
   };
 
   // ==================== Tabs ====================
-  const tabs = ["All", "Ongoing", "Active", "Completed", "Cancelled"];
+  const tabs = ["All", "Ongoing", "Active", "Rescheduled", "Completed", "Cancelled"];
 
   // ==================== Real-time Helpers ====================
+  const getSlotDateTime = (consultation) => {
+    const isRevisit = consultation.caseStatus === "revisit";
+    if (isRevisit && consultation.followUp && consultation.followUp !== "—") {
+      return { date: consultation.followUp, time: consultation.followUpTime };
+    }
+    const rr = consultation.rescheduleRequest;
+    if (rr?.status === "Approved" && (rr.approvedDate || rr.approvedTime)) {
+      return {
+        date: rr.approvedDate || consultation.date,
+        time: rr.approvedTime || consultation.time,
+      };
+    }
+    return { date: consultation.date, time: consultation.time };
+  };
+
   const getEffectiveStatus = useCallback(
     (consultation) => {
       if (consultation.status === "Completed") return "Completed";
@@ -703,9 +748,8 @@ const Consultations = () => {
 
       if (consultation.startedAt && !isRevisit) return "Active";
 
-      const aptDate = isRevisit && consultation.followUp && consultation.followUp !== "—"
-        ? parseConsultationDate(consultation.followUp)
-        : parseConsultationDate(consultation.date);
+      const slot = getSlotDateTime(consultation);
+      const aptDate = parseConsultationDate(slot.date);
       if (!aptDate) return isRevisit ? "Ongoing" : consultation.status;
 
       const now = new Date(nowTick);
@@ -713,10 +757,7 @@ const Consultations = () => {
         return isRevisit ? "Ongoing" : consultation.status;
       }
 
-      const timeStr = isRevisit && consultation.followUpTime
-        ? consultation.followUpTime
-        : consultation.time;
-      const startMinutes = parseTimeToMinutes(timeStr);
+      const startMinutes = parseTimeToMinutes(slot.time);
       if (startMinutes === null) return isRevisit ? "Ongoing" : consultation.status;
 
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -743,18 +784,14 @@ const Consultations = () => {
 
       if (consultation.startedAt && !isRevisit) return "join";
 
-      const aptDate = isRevisit && consultation.followUp && consultation.followUp !== "—"
-        ? parseConsultationDate(consultation.followUp)
-        : parseConsultationDate(consultation.date);
+      const slot = getSlotDateTime(consultation);
+      const aptDate = parseConsultationDate(slot.date);
       if (!aptDate) return null;
 
       const now = new Date(nowTick);
       if (!isSameCalendarDay(aptDate, now)) return null;
 
-      const timeStr = isRevisit && consultation.followUpTime
-        ? consultation.followUpTime
-        : consultation.time;
-      const startMinutes = parseTimeToMinutes(timeStr);
+      const startMinutes = parseTimeToMinutes(slot.time);
       if (startMinutes === null) return null;
 
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -936,21 +973,26 @@ const Consultations = () => {
     if (!suggestedDate.trim() || !suggestedDay.trim() || !suggestedTime.trim())
       return;
     const formattedDate = formatInputToDisplay(suggestedDate);
-    const rescheduleRequest = {
+    const backendId = rescheduleTarget?.backendId;
+    const appointmentId = rescheduleTarget?.rescheduleRequest?.appointmentId || rescheduleTarget?.appointmentId;
+    const req = {
       suggestedDate: formattedDate,
       suggestedDay,
       suggestedTime,
       status: "Pending Approval",
       requestedBy: "Patient",
+      approvedDate: "",
+      approvedTime: "",
+      rejectionReason: "",
+      appointmentId,
     };
-    const appointmentId = rescheduleTarget?.rescheduleRequest?.appointmentId || rescheduleTarget?.appointmentId;
 
     setData((prev) =>
       prev.map((c) =>
         c.id === rescheduleTarget.id
           ? {
               ...c,
-              rescheduleRequest,
+              rescheduleRequest: req,
             }
           : c,
       ),
@@ -958,11 +1000,11 @@ const Consultations = () => {
     if (selected && selected.id === rescheduleTarget.id) {
       setSelected((prev) => ({
         ...prev,
-        rescheduleRequest,
+        rescheduleRequest: req,
       }));
     }
-    if (appointmentId && token) {
-      axios.post(`${API_BASE_URL}/api/appointments/${appointmentId}/reschedule`, {
+    if (backendId && token) {
+      axios.post(`${API_BASE_URL}/api/consultations/${backendId}/reschedule`, {
         suggested_date: suggestedDate,
         suggested_time: suggestedTime,
       }, {
@@ -1049,6 +1091,7 @@ const Consultations = () => {
               day: dayName,
               time: displayTime,
               status: "Ongoing",
+              startedAt: null,
               rescheduleRequest: {
                 ...c.rescheduleRequest,
                 status: "Approved",
@@ -1069,6 +1112,7 @@ const Consultations = () => {
           day: dayName,
           time: displayTime,
           status: "Ongoing",
+          startedAt: null,
           rescheduleRequest: {
             ...prev.rescheduleRequest,
             status: "Approved",
@@ -1080,16 +1124,12 @@ const Consultations = () => {
         }));
       }
       if (backendId && token) {
-        const target = data.find(c => c.id === approvalTarget);
-        const appointmentId = target?.rescheduleRequest?.appointmentId || target?.appointmentId;
-        if (approvalAction === "approve" && appointmentId) {
-          axios.post(`${API_BASE_URL}/api/appointments/${appointmentId}/reschedule/approve`, {
-            date: doctorSelectedDate,
-            time: doctorSelectedTime,
-          }, {
-            headers: { Authorization: `Bearer ${token}` }, timeout: 15000
-          }).catch(err => console.error("Approve API error:", err?.message));
-        }
+        axios.post(`${API_BASE_URL}/api/consultations/${backendId}/reschedule/approve`, {
+          date: doctorSelectedDate,
+          time: doctorSelectedTime,
+        }, {
+          headers: { Authorization: `Bearer ${token}` }, timeout: 15000
+        }).catch(err => console.error("Approve API error:", err?.message));
       }
     } else {
       if (!rejectionReason.trim()) {
@@ -1124,15 +1164,11 @@ const Consultations = () => {
         }));
       }
       if (backendId && token) {
-        const target = data.find(c => c.id === approvalTarget);
-        const appointmentId = target?.rescheduleRequest?.appointmentId || target?.appointmentId;
-        if (appointmentId) {
-          axios.post(`${API_BASE_URL}/api/appointments/${appointmentId}/reschedule/reject`, {
-            reason: rejectionReason,
-          }, {
-            headers: { Authorization: `Bearer ${token}` }, timeout: 15000
-          }).catch(err => console.error("Reject API error:", err?.message));
-        }
+        axios.post(`${API_BASE_URL}/api/consultations/${backendId}/reschedule/reject`, {
+          reason: rejectionReason,
+        }, {
+          headers: { Authorization: `Bearer ${token}` }, timeout: 15000
+        }).catch(err => console.error("Reject API error:", err?.message));
       }
     }
     setApprovalPopup(false);
@@ -1199,6 +1235,8 @@ const Consultations = () => {
               ...c,
               status: "Ongoing",
               completedAt: null,
+              startedAt: null,
+              caseStatus: "revisit",
               revisit: true,
               revisitReason,
             }
@@ -1210,6 +1248,8 @@ const Consultations = () => {
         ...prev,
         status: "Ongoing",
         completedAt: null,
+        startedAt: null,
+        caseStatus: "revisit",
         revisit: true,
         revisitReason,
       }));
@@ -1447,6 +1487,12 @@ const Consultations = () => {
           {/* ============== List Panel ============== */}
           <section className="consult-list-panel">
             <div className="consult-consultation-list">
+              {visible.length === 0 && (
+                <div className="consult-empty-state">
+                  <FaCalendarAlt className="consult-empty-icon" />
+                  <p>No consultations found</p>
+                </div>
+              )}
               {visible.map((c) => (
                 <ConsultationItem
                   key={c.id}
@@ -2011,15 +2057,15 @@ const Consultations = () => {
                       >
                         <FaTimesCircle /> Cancel
                       </button>
-                    </div>
+                    </div> 
                   )}
 
                   {isPatient &&
                     effectiveStatus === "Active" && (
                       <div className="consult-action-buttons">
-                        <button className="consult-action-btn join" onClick={() => handleJoinConsultation(selected)}>
+                        {/* <button className="consult-action-btn join" onClick={() => handleJoinConsultation(selected)}>
                           <FaVideo /> Join Consultation
-                        </button>
+                        </button> */}
                         <button
                           className="consult-action-btn cancel-btn"
                           onClick={() => cancelConsultation(selected.id)}

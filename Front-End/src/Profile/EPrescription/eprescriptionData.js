@@ -153,7 +153,15 @@ export const emptyVitals = () => ({
 export const buildAppointmentRxData = (apt = {}) => {
   const now = new Date();
   const existing = apt.prescriptionData || null;
-  const examSummary = summarizeExaminationReport(apt.examinationReport || "");
+  const sourceRx =
+    apt.sourceConsultation?.prescription ||
+    apt.previousPrescription?.prescription ||
+    null;
+  const diagnosis =
+    apt.diagnosis?.[0] ||
+    existing?.diagnosis ||
+    sourceRx?.diagnosis?.[0] ||
+    "";
   const gender =
     typeof apt.gender === "string" ? apt.gender[0]?.toLowerCase() || "—" : "—";
 
@@ -163,26 +171,34 @@ export const buildAppointmentRxData = (apt = {}) => {
     mrNumber: apt.id,
     presId:
       existing?.presId ||
+      (sourceRx?.presId) ||
       `PRES ${now.getFullYear()}/${String(apt.id || "").replace(/\D/g, "").slice(-6) || String(Date.now()).slice(-6)}`,
     doctorName: apt.doctorName,
     doctorSpecialty: "Appointment",
     age: apt.age ? `${apt.age}y` : "",
     gender,
-    date: existing?.date || apt.date || now.toLocaleDateString("en-US"),
-    vitals: existing?.vitals || emptyVitals(),
-    diagnosis: existing?.diagnosis || examSummary || "",
-    allergies: existing?.allergies || "nil",
+    date: existing?.date || sourceRx?.date || apt.date || now.toLocaleDateString("en-US"),
+    vitals: existing?.vitals || (Array.isArray(sourceRx?.vitals) ? {} : sourceRx?.vitals) || emptyVitals(),
+    diagnosis,
+    allergies: existing?.allergies || sourceRx?.allergies || "nil",
     presentingComplaint:
       existing?.presentingComplaint ||
+      sourceRx?.presentingComplaint ||
       (Array.isArray(apt.symptoms) ? apt.symptoms.join(", ") : apt.symptoms || ""),
-    presentIllness: existing?.presentIllness || apt.notes || "",
+    presentIllness:
+      existing?.presentIllness || sourceRx?.presentIllness || apt.notes || "",
     clinicalExamination:
-      existing?.clinicalExamination || examSummary || apt.examinationReport || "",
-    medicines:
-      existing?.medicines?.length
-        ? existing.medicines
+      existing?.clinicalExamination ||
+      apt.examinationReport ||
+      sourceRx?.clinicalExamination ||
+      "",
+    medicines: existing?.medicines?.length
+      ? existing.medicines
+      : sourceRx?.medicines?.length
+        ? sourceRx.medicines
         : parsePrescriptionTextToMedicines(apt.prescription),
-    doctorsNotes: existing?.doctorsNotes || "",
+    doctorsNotes:
+      existing?.doctorsNotes || sourceRx?.doctorsNotes || sourceRx?.advice || "",
     createdOn: existing?.createdOn || `${apt.date || ""} ${apt.time || ""}`.trim(),
     printedBy: now.toLocaleString("en-GB"),
   });
