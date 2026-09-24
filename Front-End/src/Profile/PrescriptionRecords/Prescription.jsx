@@ -216,7 +216,7 @@ const Prescription = () => {
     expiryDate.setMonth(expiryDate.getMonth() + 4);
     const now = new Date();
 
-    if (now > expiryDate) {
+    if (now >= expiryDate) {
       return {
         text: `Expired on ${expiryDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`,
         isExpired: true,
@@ -224,16 +224,24 @@ const Prescription = () => {
       };
     }
 
-    const totalDays = 120;
-    const diffTime = expiryDate - now;
-    const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const dayMs = 1000 * 60 * 60 * 24;
+    const remainingDays = Math.max(0, Math.ceil((expiryDate - now) / dayMs));
+    let months = (expiryDate.getFullYear() - now.getFullYear()) * 12 + (expiryDate.getMonth() - now.getMonth());
+    let days = expiryDate.getDate() - now.getDate();
+
+    if (days < 0) {
+      months = Math.max(0, months - 1);
+      const prevMonth = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), 0);
+      days = prevMonth.getDate() - now.getDate() + expiryDate.getDate();
+    }
+
+    if (months < 0) months = 0;
+    if (days < 0) days = 0;
+
     const percentage = Math.max(
       0,
-      Math.min(100, (remainingDays / totalDays) * 100),
+      Math.min(100, (remainingDays / 120) * 100),
     );
-
-    const months = Math.floor(remainingDays / 30);
-    const days = remainingDays % 30;
 
     return {
       text: `Valid for ${months} Months ${days} Days`,

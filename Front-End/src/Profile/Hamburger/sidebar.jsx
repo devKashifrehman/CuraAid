@@ -115,7 +115,7 @@ const Sidebar = ({ toggleClassName = "" }) => {
       label: "Patients",
       path: "/patients",
     },
-    {
+    {  
       icon: <FaFileMedical />,
       label: "Prescriptions",
       path: "/prescriptions",

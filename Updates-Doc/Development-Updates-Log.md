@@ -39,6 +39,7 @@ CuraAid telemedicine platform. The main work items were:
 | 8 | Clinical examination | Appointment examination report now feeds the "Clinical & Physical Examination" field of the E-Prescription |
 | 9 | Custom time slot | Time picker now supports a free-typed custom time (AM/PM or 24h) |
 | 10 | Complaints | "File a Complaint" on appointments now follows the same logic/UI as consultations |
+| 11 | Patients Records | Live `/api/doctor/patients` data replaces mock data — including consultation-only patients, avatars, and instant cache-first load (no loader) |
 
 ---
 
@@ -169,6 +170,30 @@ Relevant routes (`backend/routes/api.php`):
 - `GET  /api/consultations` — (converted consultations hidden)
 - `POST /api/consultations/{id}/schedule-appointment`
 - `POST /api/complaints` — file a complaint (`appointment_id` or `consultation_id`)
+- `GET  /api/doctor/patients` — doctor's patients (see 3.10)
+
+### 3.10 Doctor's patients — `myPatients()` rewrite (live data)
+`backend/app/Http/Controllers/Api/DoctorController.php`
+
+Previously this endpoint derived patients **only from appointments**, so patients who
+had consultations but never sat in an appointment were missing. Now it merges both sources:
+
+- Loads the logged-in doctor's **appointments** (with patient) **and** **consultations** (with patient)
+  for their `doctor_profile_id`
+- Collects unique `patient_id`s from both collections
+- `$consultationCounts` → count of consultations per `patient_id`
+- `$consultationDates` → `started_at` per `patient_id`
+- **Timeline** per patient is built by merging appointment dates + consultation dates,
+  each entry tagged `type` (`Appointment` / `Consultation`) and sorted **date descending**
+- Patients that appear **only in consultations** are included (previously dropped)
+- `firstVisit` = earliest date, `lastVisit` = latest date across the merged timeline
+- New private helper `mapPatientRecord($patient, $appointmentGroup, $consultationCount, $timeline)`
+  returns `id`, `name`, `age`, `gender`, `phone`, `email`, `status`, `profile_image`,
+  `appointments`, `consultations`, `completedAppointments`, `missedAppointments`,
+  `firstVisit`, `lastVisit`, `timeline`
+- Response shape: `{ "success": true, "count": N, "data": [...] }`
+- Verified via test script: doctor `Nayab` (doctor_profile_id=8) → 2 patients
+  (patient 1 = appointments + consultations, patient 14 = **consultation-only**, now visible)
 
 ---
 
@@ -180,6 +205,8 @@ Front-End/src/Profile/Appointment/Appointments.css
 Front-End/src/Profile/Consultations/Consultation.jsx
 Front-End/src/Profile/EPrescription/eprescriptionData.js
 Front-End/src/Profile/PrescriptionRecords/Prescription.jsx
+Front-End/src/Profile/PatientsRecords/Patients.jsx
+Front-End/src/Profile/PatientsRecords/Patients.css
 ```
 
 ### 4.1 Cache — instant first paint (Appointments)
@@ -258,6 +285,32 @@ The appointment visit panel renders patient-entered/consultation data directly:
 - `previousPrescription` ← `a.previous_prescription`
 - `sourceConsultation` ← `a.source_consultation`
 
+### 4.7 Patients Records — live data, instant load (`Patients.jsx`)
+`Front-End/src/Profile/PatientsRecords/Patients.jsx` — previously used mock data;
+now fully backed by `GET /api/doctor/patients` (see 3.10).
+
+- **API fetch** with `Authorization: Bearer <token>`; response `data` array mapped via
+  `mapBackendPatient()` (timeline entries get icons: `Appointment` / `Consultation` /
+  `firstVisit`)
+- **Avatar resolution** (`resolveProfileImage`): uses the patient's `profile_image`,
+  falls back to `/storage/...` paths, else an inline SVG placeholder
+- **Date formatting**: `formatDate` → `en-GB` "12 Jun 2026"; `titleCase` for names
+- **Summary cards** now computed from live data: total patients, total appointments,
+  total consultations, repeat patients
+- **Cache-first instant paint** — same pattern as Consultations/Prescriptions:
+  - cache key `patients_data_${userKey}` in `localStorage`
+  - `readPatientsCache()` seeds state on mount → **no loader flash**, data paints instantly
+  - background refetch on mount + `visibilitychange`, overwrites state **and** cache
+  - userKey uses `user?.id ?? user?.Id ?? "guest"` (handles `AuthContext`'s capital `Id`)
+- **No loader spinner** — first visit renders the empty state ("No patients records")
+  immediately, then live data replaces it the instant the API responds (exactly like
+  the Consultations list; `FaSpinner`/"Loading patients..." removed)
+- **Empty states**: "No patients records" (no data at all), "No patients found" (search
+  miss), "No visit history yet" (patient timeline empty)
+- List shows 5 then "Show all" (`visible` slice); patient select opens the detail panel
+  (Overview tab with timeline)
+- `Patients.css`: loading spinner styles removed; summary/detail/layout styles retained
+
 ---
 
 ## 5. Key Flows (End-to-End)
@@ -332,6 +385,7 @@ Doctor or Patient on appointment/consultation detail
 | `GET` | `/api/consultations` | — | Converted consultations filtered out |
 | `POST` | `/api/consultations/{id}/schedule-appointment` | `appointment_date`, `appointment_time`, `duration?`, `notes?` | Creates follow-up appointment |
 | `POST` | `/api/complaints` | `category`, `priority`, `description`, `proof?`, `appointment_id`/`consultation_id` | Files a complaint |
+| `GET` | `/api/doctor/patients` | — (auth: doctor) | Doctor's patients from appointments + consultations |
 
 ---
 
@@ -340,6 +394,7 @@ Doctor or Patient on appointment/consultation detail
 **Backend**
 - `backend/app/Http/Controllers/Api/AppointmentController.php`
 - `backend/app/Http/Controllers/Api/ConsultationController.php`
+- `backend/app/Http/Controllers/Api/DoctorController.php`  ← `myPatients()` rewrite
 - `backend/app/Models/Appointment.php`
 - `backend/app/Models/Consultation.php`
 - `backend/app/Models/DoctorProfile.php`
@@ -357,6 +412,8 @@ Doctor or Patient on appointment/consultation detail
 - `Front-End/src/Profile/Consultations/Consultation.css`
 - `Front-End/src/Profile/EPrescription/eprescriptionData.js`
 - `Front-End/src/Profile/PrescriptionRecords/Prescription.jsx`
+- `Front-End/src/Profile/PatientsRecords/Patients.jsx`  ← live-data rewrite
+- `Front-End/src/Profile/PatientsRecords/Patients.css`  ← spinner removed
 
 **Docs**
 - `Updates-Doc/Development-Updates-Log.md` (this file)

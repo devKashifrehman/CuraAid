@@ -383,15 +383,30 @@ class DoctorController extends Controller
             ->orderBy('appointment_date')
             ->get();
 
-        $consultationCounts = Consultation::where('doctor_profile_id', $doctorProfile->id)
-            ->selectRaw('patient_id, count(*) as total')
-            ->groupBy('patient_id')
-            ->pluck('total', 'patient_id');
+        $consultations = Consultation::where('doctor_profile_id', $doctorProfile->id)
+            ->with('patient')
+            ->orderBy('started_at')
+            ->get();
 
-        $patients = $appointments->groupBy('patient_id')->map(function ($group) use ($consultationCounts) {
+        $consultationCounts = $consultations
+            ->groupBy('patient_id')
+            ->map->count();
+
+        $consultationDates = $consultations
+            ->groupBy('patient_id')
+            ->map(function ($group) {
+                return $group->pluck('started_at')->filter();
+            });
+
+        $patients = collect();
+
+        $appointments->groupBy('patient_id')->each(function ($group) use (&$patients, $consultationCounts, $consultationDates) {
             $patient = $group->first()->patient;
-            $completed = $group->where('status', Appointment::STATUS_COMPLETED)->count();
-            $missed = $group->whereIn('status', [Appointment::STATUS_CANCELLED, Appointment::STATUS_NO_SHOW])->count();
+            if (!$patient) {
+                return;
+            }
+
+            $patientId = $patient->id;
 
             $timeline = $group->map(function ($appointment) {
                 return [
@@ -399,32 +414,89 @@ class DoctorController extends Controller
                     'type' => 'Appointment',
                     'status' => ucfirst($appointment->status),
                 ];
-            })->sortByDesc('date')->values();
+            });
 
-            return [
-                'id' => $patient?->id,
-                'name' => $patient?->name ?? 'Unknown',
-                'age' => $patient?->date_of_birth ? $patient->date_of_birth->age : null,
-                'gender' => $patient?->gender,
-                'phone' => $patient?->mobile,
-                'email' => $patient?->email,
-                'status' => $patient?->status,
-                'profile_image' => $patient?->profile_image,
-                'appointments' => $group->count(),
-                'consultations' => $consultationCounts[$patient?->id] ?? 0,
-                'completedAppointments' => $completed,
-                'missedAppointments' => $missed,
-                'firstVisit' => $group->min('appointment_date')?->toDateString(),
-                'lastVisit' => $group->max('appointment_date')?->toDateString(),
-                'timeline' => $timeline,
-            ];
-        })->values();
+            foreach (($consultationDates[$patientId] ?? collect()) as $startedAt) {
+                $timeline->push([
+                    'date' => $startedAt?->toDateString(),
+                    'type' => 'Consultation',
+                    'status' => 'Completed',
+                ]);
+            }
+
+            $patients[$patientId] = $this->mapPatientRecord(
+                $patient,
+                $group,
+                $consultationCounts[$patientId] ?? 0,
+                $timeline,
+            );
+        });
+
+        // Patients who only consulted (no appointment record) must still appear.
+        $consultations->groupBy('patient_id')->each(function ($group) use (&$patients, $consultationDates) {
+            $patient = $group->first()->patient;
+            if (!$patient || $patients->has($patient->id)) {
+                return;
+            }
+
+            $patientId = $patient->id;
+            $timeline = ($consultationDates[$patientId] ?? collect())->map(function ($startedAt) {
+                return [
+                    'date' => $startedAt?->toDateString(),
+                    'type' => 'Consultation',
+                    'status' => 'Completed',
+                ];
+            });
+
+            $patients[$patientId] = $this->mapPatientRecord(
+                $patient,
+                collect(),
+                $group->count(),
+                $timeline,
+            );
+        });
+
+        $result = $patients->values()->map(function (array $record) {
+            $record['timeline'] = collect($record['timeline'])->sortByDesc('date')->values()->all();
+
+            return $record;
+        })->all();
 
         return response()->json([
             'success' => true,
-            'count' => $patients->count(),
-            'data' => $patients,
+            'count' => count($result),
+            'data' => $result,
         ]);
+    }
+
+    /**
+     * Build a normalized patient record shared by appointment & consultation
+     * history sources.
+     */
+    private function mapPatientRecord($patient, $appointmentGroup, int $consultationCount, $timeline): array
+    {
+        $completed = $appointmentGroup->where('status', Appointment::STATUS_COMPLETED)->count();
+        $missed = $appointmentGroup->whereIn('status', [Appointment::STATUS_CANCELLED, Appointment::STATUS_NO_SHOW])->count();
+
+        $allDates = collect($timeline)->pluck('date')->filter();
+
+        return [
+            'id' => $patient?->id,
+            'name' => $patient?->name ?? 'Unknown',
+            'age' => $patient?->date_of_birth ? $patient->date_of_birth->age : null,
+            'gender' => $patient?->gender,
+            'phone' => $patient?->mobile,
+            'email' => $patient?->email,
+            'status' => $patient?->status,
+            'profile_image' => $patient?->profile_image,
+            'appointments' => $appointmentGroup->count(),
+            'consultations' => $consultationCount,
+            'completedAppointments' => $completed,
+            'missedAppointments' => $missed,
+            'firstVisit' => $allDates->min(),
+            'lastVisit' => $allDates->max(),
+            'timeline' => $timeline->values()->all(),
+        ];
     }
 
     /**
