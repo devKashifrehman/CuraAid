@@ -1,4 +1,10 @@
-import React, { useState, useContext, useMemo } from "react";
+import React, {
+  useState,
+  useContext,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
 import {
   FaSave,
   FaChevronLeft,
@@ -6,7 +12,7 @@ import {
   FaToggleOn,
   FaToggleOff,
   FaPlus,
-  FaTrash,
+  FaTrash, 
   FaClock,
   FaCircle,
   FaCalendarAlt,
@@ -19,8 +25,16 @@ import {
   FaCalendar,
   FaCalendarDay,
   FaTimes,
+  FaSpinner,
 } from "react-icons/fa";
 import { ThemeContext } from "../../Theme/ThemeContext";
+import { AuthContext } from "../../HeadFoot/Auth/AuthContext";
+import axios from "axios";
+import {
+  normalizeWeeklySchedule,
+  readAvailabilityCache,
+  writeAvailabilityCache,
+} from "../../utils/availability";
 import "./availability.css";
 import Sidebar from "../Hamburger/sidebar";
 
@@ -61,18 +75,11 @@ const months = [
 
 const Availability = () => {
   const { darkMode } = useContext(ThemeContext);
+  const { token, user } = useContext(AuthContext);
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+  const userKey = user?.id ?? user?.Id ?? "guest";
 
-  // ==================== HEADER STATE ====================
-  const [activeView, setActiveView] = useState("weekly");
-  const [currentWeekStart, setCurrentWeekStart] = useState(
-    new Date(2024, 4, 19),
-  );
-  const [currentMonth, setCurrentMonth] = useState(new Date(2024, 4, 1));
-  const [currentYear, setCurrentYear] = useState(2024);
-  const [allSlotsFilter, setAllSlotsFilter] = useState("all");
-
-  // ==================== LEFT PANEL STATE ====================
-  const [weeklySchedule, setWeeklySchedule] = useState({
+  const buildDefaultSchedule = () => ({
     monday: {
       enabled: true,
       slots: [{ id: 1, start: "09:00", end: "17:00", type: "available" }],
@@ -103,6 +110,108 @@ const Availability = () => {
     },
   });
 
+  const [saveError, setSaveError] = useState("");
+  const [loading, setLoading] = useState(!readAvailabilityCache(userKey));
+  const saveInFlight = useRef(false);
+
+  // ==================== HEADER STATE ====================
+  const [activeView, setActiveView] = useState("weekly");
+  const startOfCurrentWeek = useMemo(() => {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday
+    const diff = day === 0 ? -6 : 1 - day; // back to Monday
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diff);
+    return monday;
+  }, []);
+  const [currentWeekStart, setCurrentWeekStart] = useState(startOfCurrentWeek);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [allSlotsFilter, setAllSlotsFilter] = useState("all");
+
+  // ==================== PUBLIC HOLIDAYS (real data, cache-first) ====================
+  // Fixed national holidays (same every year) used as instant + offline fallback.
+  const getFixedPakistanHolidays = (year) => [
+    `${year}-01-01`, // New Year
+    `${year}-02-05`, // Kashmir Day
+    `${year}-03-23`, // Pakistan Day
+    `${year}-05-01`, // Labour Day
+    `${year}-08-14`, // Independence Day
+    `${year}-11-09`, // Iqbal Day
+    `${year}-12-25`, // Quaid-e-Azam Day / Christmas
+  ];
+
+  // The calendar year currently on screen: monthly view follows the month
+  // (which can cross into another year), weekly & yearly use currentYear.
+  const viewedYear =
+    activeView === "monthly" ? currentMonth.getFullYear() : currentYear;
+
+  const [publicHolidays, setPublicHolidays] = useState(() => {
+    const base = new Set(getFixedPakistanHolidays(viewedYear));
+    try {
+      const cached = localStorage.getItem(`public_holidays_PK_${viewedYear}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) parsed.forEach((d) => base.add(d));
+      }
+    } catch {}
+    return base;
+  });
+
+  // Fetch real Pakistan public holidays (incl. lunar Eid dates that shift each year)
+  // from the free public Nager.Date API. Cached in localStorage; fallback = fixed set.
+  useEffect(() => {
+    let cancelled = false;
+    // Reset to the target year's fallback instantly (old year's Eid dates must
+    // not leak into the new year while the API call is in flight).
+    const fallback = new Set(getFixedPakistanHolidays(viewedYear));
+    try {
+      const cached = localStorage.getItem(`public_holidays_PK_${viewedYear}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) parsed.forEach((d) => fallback.add(d));
+      }
+    } catch {}
+    setPublicHolidays(fallback);
+
+    const loadHolidays = () => {
+      axios
+        .get(`${API_BASE_URL}/api/public-holidays`, {
+          params: { year: viewedYear },
+          timeout: 20000,
+        })
+        .then((res) => {
+          if (cancelled || !Array.isArray(res.data?.data)) return;
+          const dates = res.data.data
+            .filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d));
+          if (!dates.length) return;
+          const combined = new Set([
+            ...getFixedPakistanHolidays(viewedYear),
+            ...dates,
+          ]);
+          setPublicHolidays(combined);
+          try {
+            localStorage.setItem(
+              `public_holidays_PK_${viewedYear}`,
+              JSON.stringify([...combined]),
+            );
+          } catch {}
+        })
+        .catch(() => {});
+    };
+    loadHolidays();
+    return () => {
+      cancelled = true;
+    };
+    // API_BASE_URL is a stable module-level constant.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewedYear]);
+
+  // ==================== LEFT PANEL STATE ====================
+  const [weeklySchedule, setWeeklySchedule] = useState(() =>
+    normalizeWeeklySchedule(readAvailabilityCache(userKey) || buildDefaultSchedule()),
+  );
+
   // ==================== CUSTOM SLOT MODAL STATE ====================
   const [showCustomSlotModal, setShowCustomSlotModal] = useState(false);
   const [customSlotData, setCustomSlotData] = useState({
@@ -131,7 +240,8 @@ const Availability = () => {
   }, [weeklySchedule, clockViewDay]);
 
   // ==================== RIGHT PANEL STATE ====================
-  const [doctorStatus] = useState("online");
+  // Online status: simply reflects the login state of the doctor.
+  const doctorStatus = token && userKey !== "guest" ? "online" : "offline";
   const [showSavePopup, setShowSavePopup] = useState(false);
   const [popupVisible, setPopupVisible] = useState(false);
   const [showFullSchedule, setShowFullSchedule] = useState(false);
@@ -147,6 +257,49 @@ const Availability = () => {
     }
     return dates;
   }, [currentWeekStart]);
+
+  // ==================== LIVE API LOAD (cache-first instant paint) ====================
+  useEffect(() => {
+    if (!token || userKey === "guest") {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const loadAvailability = () => {
+      axios
+        .get(`${API_BASE_URL}/api/doctor/availability`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          timeout: 30000,
+        })
+        .then((res) => {
+          if (cancelled) return;
+          const remote = normalizeWeeklySchedule(
+            res.data?.weekly_schedule || buildDefaultSchedule(),
+          );
+          setWeeklySchedule((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(remote)) return prev;
+            return remote;
+          });
+          writeAvailabilityCache(userKey, remote);
+          setLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setLoading(false);
+        });
+    };
+    loadAvailability();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") loadAvailability();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, userKey]);
 
   // ==================== MONTH DATA ====================
   const getMonthDays = useMemo(() => {
@@ -439,12 +592,42 @@ const Availability = () => {
   };
 
   const handleSaveChanges = () => {
-    setShowSavePopup(true);
-    setPopupVisible(true);
-    setTimeout(() => {
-      setPopupVisible(false);
-      setTimeout(() => setShowSavePopup(false), 600);
-    }, 2500);
+    if (saveInFlight.current) return;
+    saveInFlight.current = true;
+    setSaveError("");
+
+    if (!token || userKey === "guest") {
+      setSaveError("Please login to save your availability schedule.");
+      saveInFlight.current = false;
+      return;
+    }
+
+    axios
+      .put(
+        `${API_BASE_URL}/api/doctor/availability`,
+        { weekly_schedule: normalizeWeeklySchedule(weeklySchedule) },
+        { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" }, timeout: 30000 },
+      )
+      .then((res) => {
+        writeAvailabilityCache(
+          userKey,
+          normalizeWeeklySchedule(res.data?.weekly_schedule || weeklySchedule),
+        );
+        setShowSavePopup(true);
+        setPopupVisible(true);
+        setTimeout(() => {
+          setPopupVisible(false);
+          setTimeout(() => setShowSavePopup(false), 600);
+        }, 2500);
+      })
+      .catch((err) => {
+        setSaveError(
+          err?.response?.data?.message || err?.message || "Failed to save availability",
+        );
+      })
+      .finally(() => {
+        saveInFlight.current = false;
+      });
   };
 
   const isDayAvailable = (dayKey) => weeklySchedule[dayKey].enabled;
@@ -459,12 +642,10 @@ const Availability = () => {
   };
 
   const isPublicHoliday = (date) => {
-    const holidays = new Set(["2024-01-01", "2024-12-25"]);
-
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const dd = String(date.getDate()).padStart(2, "0");
-    return holidays.has(`${yyyy}-${mm}-${dd}`);
+    return publicHolidays.has(`${yyyy}-${mm}-${dd}`);
   };
 
   const isDayInMonthAvailable = (day) => {
@@ -898,15 +1079,29 @@ const Availability = () => {
                   </select>
                 </div>
                 <button className="avail-save-btn" onClick={handleSaveChanges}>
-                  <FaSave className="avail-save-icon" />
-                  Save Changes
+                  {loading ? (
+                    <FaSpinner className="avail-save-icon avail-spin-icon" />
+                  ) : (
+                    <FaSave className="avail-save-icon" />
+                  )}
+                  {loading ? "Loading..." : "Save Changes"}
                 </button>
               </div>
+
+              {saveError && (
+                <div className="avail-save-error">{saveError}</div>
+              )}
             </div>
           </header>
 
           {/* ========== CONTENT AREA ========== */}
           <div className="avail-content-area">
+            {loading && (
+              <div className="avail-content-loading">
+                <FaSpinner className="avail-spin-icon" /> Loading your
+                availability...
+              </div>
+            )}
             {/* =================== LEFT PANEL - Set Weekly Availability ===================== */}
             <aside className="avail-left-panel">
               <div className="avail-panel-header">
@@ -1194,11 +1389,21 @@ const Availability = () => {
                     </span>
                   </div>
                   <p className="avail-status-subtext">
-                    Available for Consultation
+                    {doctorStatus === "online"
+                      ? "Available for Consultation"
+                      : "Login to go online"}
                   </p>
                   <div className="avail-doctor-avatar-area">
                     <div className="avail-avatar-wrapper">
-                      <FaUserMd className="avail-doctor-icon" />
+                      {user?.PhotoUrl ? (
+                        <img
+                          src={user.PhotoUrl}
+                          alt={user?.FullName || "Doctor"}
+                          className="avail-doctor-avatar-img"
+                        />
+                      ) : (
+                        <FaUserMd className="avail-doctor-icon" />
+                      )}
                       <div className="avail-avatar-badge">
                         <FaCheckCircle />
                       </div>

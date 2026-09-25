@@ -1,7 +1,7 @@
 # CuraAid — Development Updates & Logic Documentation
 
 > Session-based changelog covering Backend, Frontend and Database logic implemented
-> during this development session. Updated: 23 Sep 2026
+> during this development session. Updated: 25 Sep 2026
 >
 > **Project root:** `D:\Uni-Records\Fyp-Project`
 > **Backend:** Laravel — `\backend` (dev server `http://127.0.0.1:8000`)
@@ -40,6 +40,10 @@ CuraAid telemedicine platform. The main work items were:
 | 9 | Custom time slot | Time picker now supports a free-typed custom time (AM/PM or 24h) |
 | 10 | Complaints | "File a Complaint" on appointments now follows the same logic/UI as consultations |
 | 11 | Patients Records | Live `/api/doctor/patients` data replaces mock data — including consultation-only patients, avatars, and instant cache-first load (no loader) |
+| 12 | Doctor Availability | Set Time replaces mock data with live `/api/doctor/availability` (GET/PUT); set slots flow instantly into Appointments, Consultation revisit, and Virtual Clinic revisit calendar |
+| 13 | Public holidays | `isPublicHoliday` (Set Time calendar) no longer hardcodes `2024` — real Pakistan holidays (incl. shifting lunar Eid dates) via new backend proxy `GET /api/public-holidays` |
+| 14 | Doctor online status | "Online Now" no longer hardcoded — status now simply reflects **login state** (`token` present → online); avatar shows the doctor's uploaded `profile_image` instead of the `FaUserMd` icon |
+| 15 | Default availability | Backend now returns a **default weekly schedule** (Mon/Tue/Wed/Fri 09:00–17:00) for doctors who have never saved one — same shape as the frontend's `buildDefaultSchedule` — so Appointments, Virtual Clinic and Consultation revisit always show usable slots; the doctor can still override it anytime via Set Time (`PUT /api/doctor/availability`) |
 
 ---
 
@@ -195,6 +199,68 @@ had consultations but never sat in an appointment were missing. Now it merges bo
 - Verified via test script: doctor `Nayab` (doctor_profile_id=8) → 2 patients
   (patient 1 = appointments + consultations, patient 14 = **consultation-only**, now visible)
 
+### 3.11 Doctor availability — existing endpoints wired to the UI
+`backend/app/Http/Controllers/Api/DoctorController.php` already shipped two endpoints;
+this session only consumed them from the frontend (no backend change needed):
+
+- `getAvailability()` — `GET /api/doctor/availability` (auth: doctor)
+  - Returns `{ success, weekly_schedule, max_appointments_per_day, is_online }`
+  - `weekly_schedule` is the `DoctorProfile.weekly_schedule` JSON column (cast to array)
+  - `is_online` = `'online'` / `'offline'` from `DoctorProfile::isOnline()` (backend
+    truth; the Set Time status card itself now keys off login state instead — see 4.10)
+- `updateAvailability()` — `PUT /api/doctor/availability`
+  - Validates `weekly_schedule` (required array) + optional `max_appointments_per_day`
+    (`int`, `min:1`, `max:50`)
+  - Persists and returns the saved schedule
+- `getDoctorById($id)` — public `GET /api/doctors/{id}` already returns the full
+  `DoctorProfile` model, so its `weekly_schedule` cast array is **included** in the JSON —
+  used by Appointments `AvailableSlotsDisplay` to show each appointment's doctor's
+  real availability
+- Verified via test scripts (PUT→GET round-trip HTTP 200, schedule keys
+  `monday…sunday`, `max_appointments_per_day` persisted; profile 1 & 8 have schedules,
+  profile 2 had none because it was never saved — as expected)
+
+### 3.13 Default weekly schedule — backend always returns usable slots
+`backend/app/Models/DoctorProfile.php` + `backend/app/Http/Controllers/Api/DoctorController.php`
+- Added `DoctorProfile::DEFAULT_WEEKLY_SCHEDULE` constant — the exact same 7-day shape
+  as the frontend's `buildDefaultSchedule` (Mon/Tue/Wed/Fri 09:00–17:00 available,
+  Thu/Sat/Sun disabled/empty)
+- Added helper `weeklyScheduleOrDefault(): array` — returns the doctor's saved
+  `weekly_schedule` when set, otherwise the constant default
+- `getAvailability()` (`GET /api/doctor/availability`) now returns
+  `weeklyScheduleOrDefault()` instead of the raw (possibly `null`) column — a doctor
+  who never opened Set Time still gets the default schedule back
+- `getDoctorById($id)` (public `GET /api/doctors/{id}`) now serializes the model and
+  injects `weekly_schedule` via `weeklyScheduleOrDefault()` — so Appointments
+  `AvailableSlotsDisplay`, Virtual Clinic and Consultation revisit all show usable
+  default slots even before the doctor customizes anything
+- **Doctor can still change it anytime**: Set Time → save → `PUT /api/doctor/availability`
+  persists their own schedule, which then takes precedence (helper returns the saved
+  value). No data was written to any existing row — the default is applied at read time
+- Verified against live API: `GET /api/doctors/2` (Dr. Ayesha, `weekly_schedule` = NULL
+  in DB) → HTTP 200 with default `monday 09:00–17:00`; `GET /api/doctor/availability`
+  (doctor2 token) → default schedule returned
+
+### 3.12 Pakistan public holidays proxy — `publicHolidays()`
+`backend/app/Http/Controllers/Api/DoctorController.php` + `routes/api.php`
+
+- New public endpoint `GET /api/public-holidays?year=YYYY` (no auth; defaults to
+  current year)
+- Fetches Google Calendar's public **"Pakistan holidays"** iCal feed
+  (`en.pk%23holiday@group.v.calendar.google.com`), extracts `DTSTART;VALUE=DATE`
+  entries for the requested year — this includes the **lunar Eid dates that shift
+  every year** (Eid-ul-Fitr ≈ 20–23 Mar 2026, Eid-ul-Adha ≈ 27–29 May 2026, Ashura
+  25–26 Jun 2026), not just fixed national days
+- `Http::timeout(10)` fetch (no CORS issue server-side); results cached per year
+  for 24h via `cache()->put()`
+- Fallback: fixed national holidays always merged in
+  (`01-01`, `02-05`, `03-23`, `05-01`, `08-14`, `11-09`, `12-25`)
+- Response: `{ success, year, data: ["YYYY-MM-DD", …] }` — verified live:
+  Year 2026 → 43 dates incl. Eid windows
+- Note: Nager.Date was evaluated first but **doesn't support Pakistan (PK)** — every
+  year returned HTTP 204; Google Calendar iCal has no CORS header, hence the backend
+  proxy
+
 ---
 
 ## 4. Frontend Logic
@@ -203,10 +269,16 @@ had consultations but never sat in an appointment were missing. Now it merges bo
 Front-End/src/Profile/Appointment/Appointments.jsx
 Front-End/src/Profile/Appointment/Appointments.css
 Front-End/src/Profile/Consultations/Consultation.jsx
+Front-End/src/Profile/Consultations/Consultation.css
 Front-End/src/Profile/EPrescription/eprescriptionData.js
 Front-End/src/Profile/PrescriptionRecords/Prescription.jsx
 Front-End/src/Profile/PatientsRecords/Patients.jsx
 Front-End/src/Profile/PatientsRecords/Patients.css
+Front-End/src/Profile/SetTime/availability.jsx
+Front-End/src/Profile/SetTime/availability.css
+Front-End/src/DoctorFinder/VirtualClinic/Clinic.jsx
+Front-End/src/DoctorFinder/VirtualClinic/Clinic.css
+Front-End/src/utils/availability.js          ← new shared availability utility
 ```
 
 ### 4.1 Cache — instant first paint (Appointments)
@@ -311,6 +383,93 @@ now fully backed by `GET /api/doctor/patients` (see 3.10).
   (Overview tab with timeline)
 - `Patients.css`: loading spinner styles removed; summary/detail/layout styles retained
 
+### 4.8 Doctor availability — Set Time + live slots everywhere
+**New shared utility** `Front-End/src/utils/availability.js` (single source of truth for
+schedule math used by all four screens):
+- `normalizeWeeklySchedule(raw)` — coerces any backend/legacy shape into
+  `{ monday: { enabled, slots: [{ id, start, end, type }] }, … sunday }`, defaulting to
+  `Mon/Tue/Wed/Fri 09:00–17:00` enabled (falls back when `weekly_schedule` is `null`)
+- `dayKeyFromDate(date)` — `YYYY-MM-DD` → weekday key (`monday`…`sunday`)
+- `windowsForDate(schedule, date)` — list of `[startMin, endMin]` windows for that day
+- `filterSlotsByWindows(slots, windows)` — keeps only 30-min presets inside a window
+- `weeklyScheduleEntries(schedule)` — `[{ day, start, end }]` flat list for strip UIs
+- `toMinutes("HH:MM")`, `isInWindows`, `availabilityCacheKey`
+- `readAvailabilityCache(key)` / `writeAvailabilityCache(key, schedule)` /
+  `clearAvailabilityCache(key)` — `localStorage` (key prefix
+  `doctor_availability_${userKey}`); all authors use `user?.id ?? user?.Id ?? "guest"`
+
+**SetTime page** (`Front-End/src/Profile/SetTime/availability.jsx`) — mock → live:
+- State seeded **cache-first**: `normalizeWeeklySchedule(readAvailabilityCache(userKey) ||
+  buildDefaultSchedule())` → instant paint like Consultations
+- Fetch `GET /api/doctor/availability` on mount + `visibilitychange`; response writes
+  cache; `loading` only true when no cache exists yet
+- **Real current dates**: hardcoded `2024` month/year/year-grid replaced with
+  `new Date()` (current week's Monday start)
+- Save → `PUT /api/doctor/availability` with `{ weekly_schedule, max_appointments_per_day }`;
+  success popup + cache write; failure inline `saveError`
+- Save button shows `FaSpinner` "Loading…" while in flight (`saveInFlight` ref guard)
+- `availability.css`: `.avail-content-loading` overlay, `.avail-spin-icon` /
+  `@keyframes availSpin`, `.avail-save-error`
+
+**Appointments** (`Front-End/src/Profile/Appointment/Appointments.jsx`) —
+`AvailableSlotsDisplay` was hardcoded (3 static slot ranges); now real:
+- New state `doctorSchedule` derived from the **selected appointment's** `doctorProfileId`
+  (mapper sets it from `doctor.id`)
+- Cache-first read then public `GET /api/doctors/${doctorProfileId}`
+  (`weekly_schedule` from full model JSON) — per-doctor cache key
+- `weeklyScheduleEntries(normalizeWeeklySchedule(...))` renders actual day/time chips;
+  empty state "No availability set — contact the doctor"
+- All 4 call sites (pending-approval banner, reschedule suggestion, reschedule popup,
+  revisit popup) pass `weeklySchedule={doctorSchedule}`
+- `Appointments.css`: `.apt-available-slot-empty` (+ dark variant)
+
+**Virtual Clinic** (`Front-End/src/DoctorFinder/VirtualClinic/Clinic.jsx`) — revisit
+calendar slots now real:
+- Doctor's `weeklySchedule` state seeded from cache; `GET /api/doctor/availability`
+  keeps it fresh (same cache-first pattern)
+- Calendar days with **no configured window** are greyed/disabled (`.cli-day-unavailable`,
+  `disabled` attr); clicking them does nothing
+- `availableTimeSlots = filterSlotsByWindows(timeSlots, windowsForDate(weeklySchedule,
+  selectedDate))` — only the doctor's real windows render; changing date/week resets
+  stale `selectedTime`/custom time
+- If the chosen day has no windows → inline "Doctor is not available on this day" message
+- `generateTimeSlots` static 30-min grid is untouched — it's just filtered now
+
+**Consultations** (`Front-End/src/Profile/Consultations/Consultation.jsx`) — revisit popup:
+- Doctor-only **availability strip** under the reason textarea: "Your Available Time"
+  chips from `weeklyScheduleEntries` (cache-first + `/api/doctor/availability` fetch)
+- Empty hint nudges: "set it in Set Time"; `Consultation.css`:
+  `.consult-availability-strip*`
+
+### 4.9 Public holidays on the Set Time calendar (no more hardcoded 2024)
+`Front-End/src/Profile/SetTime/availability.jsx`
+- `isPublicHoliday()` previously checked a hardcoded `Set(["2024-01-01", "2024-12-25"])`
+- Now backed by a `publicHolidays` Set seeded **cache-first** from
+  `localStorage` (`public_holidays_PK_${year}`) with fixed national holidays as the
+  instant fallback
+- Fetch effect (`GET /api/public-holidays?year=…`, see 3.12) merges real dates,
+  writes cache; on year navigate the set resets to that year's fallback so the
+  previous year's Eid dates never leak in
+- Year tracked via `viewedYear` (monthly view follows `currentMonth` across year
+  boundaries; weekly/yearly use `currentYear`)
+- Marked holiday cells keep the existing `avail-dot-holiday` /
+  `avail-yearly-day-holiday` styles — only the data source changed
+
+### 4.10 Doctor Status card — login-based status + real avatar
+`Front-End/src/Profile/SetTime/availability.jsx` (+ `availability.css`)
+- **Status**: `doctorStatus` was `useState("online")` (static mock); it is now derived
+  directly from login: `const doctorStatus = token && userKey !== "guest" ? "online" : "offline"` —
+  logged in ⇒ "Online Now" / "Available for Consultation", logged out ⇒ "Offline" /
+  "Login to go online". No fetch, no cache, always correct for the session
+  (an earlier `isOnline()`-based attempt was dropped because it reported Offline
+  for a logged-in doctor)
+- **Avatar**: the `FaUserMd` placeholder icon is replaced by the doctor's uploaded
+  avatar — `<img src={user.PhotoUrl}>` (AuthContext `normalizeUser()` already resolves
+  `profile_image` to a full `/storage/...` URL, with an SVG placeholder fallback);
+  `FaUserMd` remains only when `PhotoUrl` is absent (guest)
+- `availability.css`: `.avail-doctor-avatar-img` (74×74, circular, `object-fit: cover`
+  — fits inside the themed `.avail-avatar-wrapper` ring)
+
 ---
 
 ## 5. Key Flows (End-to-End)
@@ -360,6 +519,17 @@ Doctor or Patient on appointment/consultation detail
    └─ success toast
 ```
 
+### 5.5 Doctor sets availability → slots reflect everywhere
+```
+Doctor opens Set Time
+   └─ schedule painted instantly from cache (or default)
+   └─ toggle days / edit time windows → Save
+        └─ PUT /api/doctor/availability → cache write + success popup
+   └─ Appointments: AvailableSlotsDisplay shows this schedule per doctor
+   └─ Consultation revisit popup: "Your Available Time" strip shows it
+   └─ Virtual Clinic revisit calendar: only these dates/times are bookable
+```
+
 ---
 
 ## 6. Fixed Bugs
@@ -386,6 +556,10 @@ Doctor or Patient on appointment/consultation detail
 | `POST` | `/api/consultations/{id}/schedule-appointment` | `appointment_date`, `appointment_time`, `duration?`, `notes?` | Creates follow-up appointment |
 | `POST` | `/api/complaints` | `category`, `priority`, `description`, `proof?`, `appointment_id`/`consultation_id` | Files a complaint |
 | `GET` | `/api/doctor/patients` | — (auth: doctor) | Doctor's patients from appointments + consultations |
+| `GET` | `/api/doctor/availability` | — (auth: doctor) | Doctor's `weekly_schedule` + `max_appointments_per_day` (returns default schedule if none saved) |
+| `PUT` | `/api/doctor/availability` | `weekly_schedule` (array), `max_appointments_per_day?` | Saves doctor availability (doctor's own schedule then wins over default) |
+| `GET` | `/api/doctors/{id}` | — (public) | Full doctor profile incl. `weekly_schedule` (default when none saved; used for slot display) |
+| `GET` | `/api/public-holidays` | `year?` (e.g. `2026`) | Pakistan holidays via Google iCal proxy (incl. Eid) |
 
 ---
 
@@ -394,10 +568,10 @@ Doctor or Patient on appointment/consultation detail
 **Backend**
 - `backend/app/Http/Controllers/Api/AppointmentController.php`
 - `backend/app/Http/Controllers/Api/ConsultationController.php`
-- `backend/app/Http/Controllers/Api/DoctorController.php`  ← `myPatients()` rewrite
+- `backend/app/Http/Controllers/Api/DoctorController.php`  ← `myPatients()` rewrite + `publicHolidays()` proxy + default schedule fallback (3.13)
 - `backend/app/Models/Appointment.php`
 - `backend/app/Models/Consultation.php`
-- `backend/app/Models/DoctorProfile.php`
+- `backend/app/Models/DoctorProfile.php`  ← `DEFAULT_WEEKLY_SCHEDULE` const + `weeklyScheduleOrDefault()` (3.13)
 - `backend/app/Models/User.php`
 - `backend/routes/api.php`
 - `backend/database/migrations/2026_09_23_000001_*`
@@ -414,6 +588,12 @@ Doctor or Patient on appointment/consultation detail
 - `Front-End/src/Profile/PrescriptionRecords/Prescription.jsx`
 - `Front-End/src/Profile/PatientsRecords/Patients.jsx`  ← live-data rewrite
 - `Front-End/src/Profile/PatientsRecords/Patients.css`  ← spinner removed
+- `Front-End/src/Profile/SetTime/availability.jsx`      ← live API + real dates
+- `Front-End/src/Profile/SetTime/availability.css`      ← loading / error styles
+- `Front-End/src/DoctorFinder/VirtualClinic/Clinic.jsx` ← real slots + greyed days
+- `Front-End/src/DoctorFinder/VirtualClinic/Clinic.css` ← `.cli-day-unavailable`
+- `Front-End/src/utils/availability.js`                 ← NEW shared utility
+- `Front-End/src/Profile/SetTime/availability.jsx`      ← real public holidays (4.9)
 
 **Docs**
 - `Updates-Doc/Development-Updates-Log.md` (this file)

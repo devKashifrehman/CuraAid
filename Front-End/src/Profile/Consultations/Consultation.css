@@ -968,6 +968,46 @@ select.consult-edit-input {
   box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1);
 }
 
+/* ===== AVAILABILITY STRIP (revisit popup) ===== */
+.consult-availability-strip {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+.consult-availability-strip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 10px;
+}
+.consult-availability-strip-header svg {
+  color: #3b82f6;
+}
+.consult-availability-strip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.consult-availability-strip-chip {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+}
+.consult-availability-strip-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
 /* ===== DATE/TIME PICKER POPUPS ===== */
 .consult-date-picker-popup,
 .consult-time-picker-popup {

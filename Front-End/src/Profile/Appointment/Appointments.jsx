@@ -46,6 +46,11 @@ import {
   buildAppointmentRxData,
   medicinesToTextSummary,
 } from "../EPrescription";
+import {
+  normalizeWeeklySchedule,
+  weeklyScheduleEntries,
+  availabilityCacheKey,
+} from "../../utils/availability";
 
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
@@ -351,15 +356,13 @@ const to12hLabel = (val) => {
 
 const timeSlots = generateTimeSlots();
 
-// ==================== Available Slots ====================
-const availableSlots = [
-  { start: "11:00 AM", end: "5:00 PM" },
-  { start: "9:00 AM", end: "12:00 PM" },
-  { start: "2:00 PM", end: "6:00 PM" },
-];
-
 // ==================== Available Slots Display Component ====================
-const AvailableSlotsDisplay = () => {
+// Shows the appointment's doctor weekly availability (real data from the
+// doctor's weekly_schedule). Cached per doctor for instant first paint.
+const AvailableSlotsDisplay = ({ weeklySchedule }) => {
+  const scheduled = normalizeWeeklySchedule(weeklySchedule);
+  const entries = weeklyScheduleEntries(scheduled);
+
   return (
     <div className="apt-available-slots-container">
       <div className="apt-available-slots-header">
@@ -367,11 +370,17 @@ const AvailableSlotsDisplay = () => {
         <span>Available Time Slots</span>
       </div>
       <div className="apt-available-slots-grid">
-        {availableSlots.map((slot, index) => (
-          <div key={index} className="apt-available-slot-item">
-            {slot.start} - {slot.end}
+        {entries.length > 0 ? (
+          entries.map((e, index) => (
+            <div key={index} className="apt-available-slot-item">
+              {e.day} {e.start} - {e.end}
+            </div>
+          ))
+        ) : (
+          <div className="apt-available-slot-empty">
+            No availability set — contact the doctor
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -615,6 +624,52 @@ const Appointments = () => {
     } catch {}
     return defaultAppointmentsData;
   });
+
+  // ==================== Doctor's real weekly availability ====================
+  // Derived from the selected appointment's doctor (public GET /api/doctors/{id}).
+  const [doctorSchedule, setDoctorSchedule] = useState(null);
+  const selectedDoctorKey = selected?.doctorProfileId;
+
+  useEffect(() => {
+    if (!selectedDoctorKey) {
+      setDoctorSchedule(null);
+      return;
+    }
+    let cancelled = false;
+    const loadSchedule = () => {
+      // Cache-first instant paint (per doctor).
+      const cachedKey = availabilityCacheKey(`doctor_${selectedDoctorKey}`);
+      try {
+        const cached = localStorage.getItem(cachedKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed === "object") {
+            setDoctorSchedule(parsed.weekly_schedule || parsed);
+          }
+        }
+      } catch {}
+      axios
+        .get(`${API_BASE_URL}/api/doctors/${selectedDoctorKey}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          timeout: 30000,
+        })
+        .then((res) => {
+          if (cancelled) return;
+          const ws = res.data?.data?.weekly_schedule || null;
+          setDoctorSchedule(ws);
+          if (ws) {
+            try {
+              localStorage.setItem(cachedKey, JSON.stringify({ weekly_schedule: ws }));
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    };
+    loadSchedule();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDoctorKey, token]);
 
   // ==================== API Fetch ====================
   useEffect(() => {
@@ -2225,7 +2280,9 @@ const Appointments = () => {
                     </div>
 
                     {selected.rescheduleRequest.status ===
-                      "Pending Approval" && <AvailableSlotsDisplay />}
+                      "Pending Approval" && (
+                      <AvailableSlotsDisplay weeklySchedule={doctorSchedule} />
+                    )}
 
                     {/* Doctor approve/reject controls are temporarily disabled while
                         patient reschedules auto-activate. */}
@@ -2601,7 +2658,7 @@ const Appointments = () => {
             </div>
             <div className="apt-popup-body">
               <p>Suggest a new date and time for your appointment:</p>
-              <AvailableSlotsDisplay />
+              <AvailableSlotsDisplay weeklySchedule={doctorSchedule} />
               <div className="apt-reschedule-fields">
                 <div className="apt-field-group">
                   <label>Date</label>
@@ -2735,7 +2792,7 @@ const Appointments = () => {
                     Select or enter a date and time for the rescheduled
                     appointment:
                   </p>
-                  <AvailableSlotsDisplay />
+                  <AvailableSlotsDisplay weeklySchedule={doctorSchedule} />
                   <div className="apt-reschedule-fields">
                     <div className="apt-field-group">
                       <label>New Date</label>
@@ -2886,7 +2943,7 @@ const Appointments = () => {
                 value={revisitReason}
                 onChange={(e) => setRevisitReason(e.target.value)}
               />
-              <AvailableSlotsDisplay />
+              <AvailableSlotsDisplay weeklySchedule={doctorSchedule} />
               <div className="apt-reschedule-fields">
                 <div className="apt-field-group">
                   <label>Follow-up Date</label>

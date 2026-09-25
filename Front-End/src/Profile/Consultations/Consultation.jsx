@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef, useEffect, useCallback } from "react";
+import React, { useContext, useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -32,6 +32,12 @@ import "./Consultation.css";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../HeadFoot/Auth/AuthContext";
 import Sidebar from "../Hamburger/sidebar";
+import {
+  normalizeWeeklySchedule,
+  weeklyScheduleEntries,
+  readAvailabilityCache,
+  writeAvailabilityCache,
+} from "../../utils/availability";
 
 //==================== Constants ============================
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
@@ -632,6 +638,50 @@ const Consultations = () => {
   // ==================== Real-time State ====================
   const [nowTick, setNowTick] = useState(() => Date.now());
   const userKey = user?.id ?? user?.Id ?? "guest";
+
+  // ==================== Doctor weekly availability (for revisit popup strip) ===
+  const [weeklySchedule, setWeeklySchedule] = useState(() =>
+    isDoctor ? normalizeWeeklySchedule(readAvailabilityCache(userKey)) : null,
+  );
+
+  useEffect(() => {
+    if (!isDoctor || userKey === "guest" || !token) return;
+    let cancelled = false;
+    const loadAvailability = () => {
+      axios
+        .get(`${API_BASE_URL}/api/doctor/availability`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          timeout: 30000,
+        })
+        .then((res) => {
+          if (cancelled) return;
+          const remote = normalizeWeeklySchedule(
+            res.data?.weekly_schedule || null,
+          );
+          setWeeklySchedule((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(remote)) return prev;
+            return remote;
+          });
+          writeAvailabilityCache(userKey, remote);
+        })
+        .catch(() => {});
+    };
+    loadAvailability();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") loadAvailability();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [isDoctor, userKey, token]);
+
+  const availabilityEntries = useMemo(() => {
+    if (!weeklySchedule) return [];
+    return weeklyScheduleEntries(weeklySchedule);
+  }, [weeklySchedule]);
 
   const [data, setData] = useState(() => {
     if (!userKey || userKey === "guest") return null;
@@ -2445,6 +2495,27 @@ const Consultations = () => {
                 value={revisitReason}
                 onChange={(e) => setRevisitReason(e.target.value)}
               />
+              {isDoctor && (
+                <div className="consult-availability-strip">
+                  <div className="consult-availability-strip-header">
+                    <FaClock /> Your Available Time
+                  </div>
+                  {availabilityEntries.length > 0 ? (
+                    <div className="consult-availability-strip-grid">
+                      {availabilityEntries.map((e, index) => (
+                        <span key={index} className="consult-availability-strip-chip">
+                          {e.day} {e.start} - {e.end}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="consult-availability-strip-empty">
+                      No availability set yet — set it in Set Time to help
+                      patients pick slots.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="consult-popup-footer">
               <button

@@ -1024,6 +1024,12 @@
   opacity: 0.8;
 }
 
+.cli-calendar-day.cli-day-unavailable {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
 .cli-time-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

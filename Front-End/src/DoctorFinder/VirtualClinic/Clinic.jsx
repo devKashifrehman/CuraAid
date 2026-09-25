@@ -40,6 +40,13 @@ import EPrescriptionModal, {
   EMPTY_MEDICINE,
   getDraftStorageKey,
 } from "../../Profile/EPrescription";
+import {
+  normalizeWeeklySchedule,
+  windowsForDate,
+  filterSlotsByWindows,
+  readAvailabilityCache,
+  writeAvailabilityCache,
+} from "../../utils/availability";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
@@ -305,6 +312,42 @@ const Clinic = () => {
   const [calendarMode, setCalendarMode] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
+  const doctorUserKey = user?.id ?? user?.Id ?? "guest";
+  const [weeklySchedule, setWeeklySchedule] = useState(() =>
+    normalizeWeeklySchedule(readAvailabilityCache(doctorUserKey)),
+  );
+
+  // Real weekly availability of the logged-in doctor (cache-first instant paint).
+  useEffect(() => {
+    if (!isDoctor || doctorUserKey === "guest") return;
+    let cancelled = false;
+    const loadAvailability = () => {
+      api
+        .get("/doctor/availability")
+        .then((res) => {
+          if (cancelled) return;
+          const remote = normalizeWeeklySchedule(
+            res.data?.weekly_schedule || null,
+          );
+          setWeeklySchedule((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(remote)) return prev;
+            return remote;
+          });
+          writeAvailabilityCache(doctorUserKey, remote);
+        })
+        .catch(() => {});
+    };
+    loadAvailability();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") loadAvailability();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [isDoctor, doctorUserKey]);
 
   // --- Patient States ---
   const [showFeedback, setShowFeedback] = useState(false);
@@ -927,6 +970,35 @@ const Clinic = () => {
   })();
   const [customTimeMode, setCustomTimeMode] = useState(false);
   const [customTimeValue, setCustomTimeValue] = useState("");
+
+  // Time slots shown for the selected date are the doctor's real available
+  // windows (weekly schedule), so a revisit can only be set inside availability.
+  const availableTimeSlots = useMemo(() => {
+    if (!selectedDate) return [];
+    const windows = windowsForDate(weeklySchedule, selectedDate);
+    return filterSlotsByWindows(timeSlots, windows).map((t) => ({
+      value: t.value,
+      label: t.label,
+    }));
+  }, [selectedDate, weeklySchedule, timeSlots]);
+  const hasAvailabilityForDate = useMemo(() => {
+    if (!selectedDate) return false;
+    return windowsForDate(weeklySchedule, selectedDate).length > 0;
+  }, [selectedDate, weeklySchedule]);
+
+  // Whether the doctor has any configured window for a given calendar date.
+  const isCalendarDayAvailable = (dateStr) => {
+    if (!dateStr) return false;
+    return windowsForDate(weeklySchedule, dateStr).length > 0;
+  };
+
+  // Reset selected time when the chosen date / availability changes so a stale
+  // (previously bookable) slot never slips through.
+  useEffect(() => {
+    setSelectedTime(null);
+    setCustomTimeMode(false);
+    setCustomTimeValue("");
+  }, [selectedDate, weeklySchedule]);
 
   const to12hLabel = (val) => {
     if (!val) return val;
@@ -1837,18 +1909,27 @@ const Clinic = () => {
             <div className="cli-calendar-section">
               <h4>Select Date</h4>
               <div className="cli-calendar-days">
-                {generateCalendarDays().map((day) => (
-                  <button
-                    key={day.date}
-                    onClick={() => setSelectedDate(day.date)}
-                    className={`cli-calendar-day ${selectedDate === day.date ? "cli-active" : ""}`}
-                    aria-pressed={selectedDate === day.date}
-                  >
-                    <span className="cli-day-name">{day.dayName}</span>
-                    <span className="cli-day-num">{day.dayNum}</span>
-                    <span className="cli-day-month">{day.month}</span>
-                  </button>
-                ))}
+                {generateCalendarDays().map((day) => {
+                  const dayAvailable = isCalendarDayAvailable(day.date);
+                  return (
+                    <button
+                      key={day.date}
+                      onClick={() => {
+                        if (!dayAvailable) return;
+                        setSelectedDate(day.date);
+                      }}
+                      className={`cli-calendar-day ${
+                        selectedDate === day.date ? "cli-active" : ""
+                      } ${dayAvailable ? "" : "cli-day-unavailable"}`}
+                      aria-pressed={selectedDate === day.date}
+                      disabled={!dayAvailable}
+                    >
+                      <span className="cli-day-name">{day.dayName}</span>
+                      <span className="cli-day-num">{day.dayNum}</span>
+                      <span className="cli-day-month">{day.month}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -1874,25 +1955,42 @@ const Clinic = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="cli-time-grid">
-                    {timeSlots.map((time) => (
+                  hasAvailabilityForDate ? (
+                    <div className="cli-time-grid">
+                      {availableTimeSlots.map((time) => (
+                        <button
+                          key={time.value}
+                          onClick={() => setSelectedTime(time.value)}
+                          className={`cli-time-slot ${selectedTime === time.value ? "cli-active" : ""}`}
+                          aria-pressed={selectedTime === time.value}
+                        >
+                          {time.label}
+                        </button>
+                      ))}
                       <button
-                        key={time.value}
-                        onClick={() => setSelectedTime(time.value)}
-                        className={`cli-time-slot ${selectedTime === time.value ? "cli-active" : ""}`}
-                        aria-pressed={selectedTime === time.value}
+                        onClick={() => setCustomTimeMode(true)}
+                        className="cli-time-slot"
+                        style={{ background: "rgba(245, 158, 11, 0.08)", borderColor: "rgba(245, 158, 11, 0.3)", color: "#f59e0b", fontWeight: 600 }}
                       >
-                        {time.label}
+                        Custom Time
                       </button>
-                    ))}
-                    <button
-                      onClick={() => setCustomTimeMode(true)}
-                      className="cli-time-slot"
-                      style={{ background: "rgba(245, 158, 11, 0.08)", borderColor: "rgba(245, 158, 11, 0.3)", color: "#f59e0b", fontWeight: 600 }}
-                    >
-                      Custom Time
-                    </button>
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="cli-time-grid">
+                      <div
+                        style={{
+                          gridColumn: "1 / -1",
+                          textAlign: "center",
+                          padding: "12px 0",
+                          fontSize: "13px",
+                          color: "#94a3b8",
+                        }}
+                      >
+                        Doctor is not available on this day — pick another date
+                        from the clinic schedule.
+                      </div>
+                    </div>
+                  )
                 )}
               </div>
             )}

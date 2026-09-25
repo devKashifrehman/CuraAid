@@ -43,6 +43,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/medi/google-login', [AuthController::class, 'googleLogin']);
 Route::post('/medi/FeedbackForm', [FeedbackController::class, 'store']);
 Route::get('/reviews', [FeedbackController::class, 'publicReviews']);
+Route::get('/public-holidays', [DoctorController::class, 'publicHolidays']); // ?year=YYYY
 
 /**
  * ============================================================

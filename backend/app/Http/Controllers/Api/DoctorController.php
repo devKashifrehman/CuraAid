@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\Consultation;
 use App\Models\DoctorProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
 class DoctorController extends Controller
@@ -202,9 +203,12 @@ class DoctorController extends Controller
             ], 404);
         }
 
+        $data = $doctor->toArray();
+        $data['weekly_schedule'] = $doctor->weeklyScheduleOrDefault();
+
         return response()->json([
             'success' => true,
-            'data' => $doctor,
+            'data' => $data,
         ]);
     }
 
@@ -326,8 +330,9 @@ class DoctorController extends Controller
 
         return response()->json([
             'success' => true,
-            'weekly_schedule' => $doctorProfile->weekly_schedule,
+            'weekly_schedule' => $doctorProfile->weeklyScheduleOrDefault(),
             'max_appointments_per_day' => (int) ($doctorProfile->max_appointments_per_day ?: 12),
+            'is_online' => $doctorProfile->isOnline() ? 'online' : 'offline',
         ]);
     }
 
@@ -467,6 +472,54 @@ class DoctorController extends Controller
             'count' => count($result),
             'data' => $result,
         ]);
+    }
+
+    /**
+     * Pakistan public holidays for a given year.
+     *
+     * Fetches Google Calendar's public "Pakistan holidays" iCal feed, parses the
+     * DTSTART dates (covers lunar Eid dates that shift each year), and returns a
+     * plain array of "YYYY-MM-DD" strings. Results are cached per year for 24h.
+     * A minimal fixed set of national holidays acts as a fallback when the feed
+     * is unreachable.
+     */
+    public function publicHolidays(Request $request)
+    {
+        $year = (int) $request->query('year', date('Y'));
+        $cacheKey = "pakistan_public_holidays_{$year}";
+
+        $cached = cache()->get($cacheKey);
+        if (is_array($cached)) {
+            return response()->json(['success' => true, 'year' => $year, 'data' => $cached]);
+        }
+
+        $holidays = [];
+        try {
+            $ics = Http::timeout(10)->get('https://calendar.google.com/calendar/ical/en.pk%23holiday%40group.v.calendar.google.com/public/basic.ics')->body();
+
+            preg_match_all('/^DTSTART;VALUE=DATE:(\d{8})\s*$/mi', $ics, $matches);
+            foreach ($matches[1] ?? [] as $ymd) {
+                if (substr($ymd, 0, 4) === (string) $year) {
+                    $holidays[] = sprintf('%s-%s-%s', substr($ymd, 0, 4), substr($ymd, 4, 2), substr($ymd, 6, 2));
+                }
+            }
+        } catch (\Throwable $e) {
+            // fall through to fixed fallback below
+        }
+
+        // Fixed national holidays (same dates every year) as fallback.
+        foreach (['01-01', '02-05', '03-23', '05-01', '08-14', '11-09', '12-25'] as $md) {
+            $holidays[] = "{$year}-{$md}";
+        }
+
+        $holidays = array_values(array_unique($holidays));
+        sort($holidays);
+
+        if (count($holidays) > 7) {
+            cache()->put($cacheKey, $holidays, now()->addHours(24));
+        }
+
+        return response()->json(['success' => true, 'year' => $year, 'data' => $holidays]);
     }
 
     /**

@@ -34,8 +34,13 @@
   background-color: #e2e8f0;
   border-radius: 10px;
   padding: 4px;
-  margin-left: 30px;
+  margin-left: 70px;
   margin-bottom: 30px;
+}
+
+/* Keep the availability page's sidebar bar 30px lower without affecting other pages. */
+.avail-availability-wrapper .sidebar-toggle.hamburger {
+  top: 110px;
 }
 
 .avail-tab-btn {
@@ -150,6 +155,46 @@
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  position: relative;
+}
+
+.avail-spin-icon {
+  margin-right: 6px;
+  animation: availSpin 1s linear infinite;
+}
+
+@keyframes availSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.avail-content-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.35);
+  color: #e2e8f0;
+  border-radius: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.avail-save-error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
 }
 
 /* ========================================== */
@@ -1195,6 +1240,14 @@
 }
 
 .avail-doctor-icon { font-size: 36px; }
+
+.avail-doctor-avatar-img {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
 
 .avail-avatar-badge {
   position: absolute;

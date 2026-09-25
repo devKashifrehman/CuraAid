@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DoctorProfile extends Model
 {
+    /**
+     * Default weekly availability used whenever a doctor has not saved
+     * their own schedule yet (mirrors the frontend's buildDefaultSchedule).
+     */
+    public const DEFAULT_WEEKLY_SCHEDULE = [
+        'monday'    => ['enabled' => true,  'slots' => [['id' => 1, 'start' => '09:00', 'end' => '17:00', 'type' => 'available']]],
+        'tuesday'   => ['enabled' => true,  'slots' => [['id' => 1, 'start' => '09:00', 'end' => '17:00', 'type' => 'available']]],
+        'wednesday' => ['enabled' => true,  'slots' => [['id' => 1, 'start' => '09:00', 'end' => '17:00', 'type' => 'available']]],
+        'thursday'  => ['enabled' => false, 'slots' => []],
+        'friday'    => ['enabled' => true,  'slots' => [['id' => 1, 'start' => '09:00', 'end' => '17:00', 'type' => 'available']]],
+        'saturday'  => ['enabled' => false, 'slots' => []],
+        'sunday'    => ['enabled' => false, 'slots' => []],
+    ];
+
     protected $fillable = [
         'user_id',
         'pmdc_number',
@@ -83,6 +97,16 @@ class DoctorProfile extends Model
         }
 
         return true;
+    }
+
+    /**
+     * The doctor's weekly schedule, or the default if none saved yet.
+     */
+    public function weeklyScheduleOrDefault(): array
+    {
+        return !empty($this->weekly_schedule) && is_array($this->weekly_schedule)
+            ? $this->weekly_schedule
+            : self::DEFAULT_WEEKLY_SCHEDULE;
     }
 
     public function toDoctorArray(): array
